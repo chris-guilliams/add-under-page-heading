@@ -1,20 +1,41 @@
 import { App, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
+interface Rule {
+	tag: string;
+	heading: string;
+}
+
 interface MyPluginSettings {
-	mySetting: string;
+	rules: Rule[];
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
+	rules: [
+		{ tag: "career", heading: "## Career Discussion" },
+		{ tag: "1-1", heading: "## One-on-One Topics" },
+	],
+};
 
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
 
 	async onload() {
-		console.log('loading plugin');
-
 		await this.loadSettings();
+
+		const directReports = ["Chase", "Mo", "Alex"]; // Example list of direct reports
+		const noteTypes = ["1-1", "career"];
+	  
+		directReports.forEach((report) => {
+		  noteTypes.forEach((type) => {
+			this.addCommand({
+			  id: `add-item-to-${report}-${type}`,
+			  name: `Add item to ${report} ${type}`,
+			  callback: () => {
+				new AddItemModal(this.app, this.settings, report, type).open();
+			  },
+			});
+		  });
+		});
 
 		this.addRibbonIcon('dice', 'Sample Plugin', () => {
 			new Notice('This is a notice!');
@@ -82,31 +103,96 @@ class SampleModal extends Modal {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+class AddItemModal extends Modal {
+	settings: MyPluginSettings;
+	report: string;
+	type: string;
 
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
+	constructor(app: App, settings: MyPluginSettings, report: string, type: string) {
+		super(app);
+		this.settings = settings;
+		this.report = report;
+		this.type = type;
 	}
 
-	display(): void {
-		let {containerEl} = this;
+	onOpen() {
+		const { contentEl } = this;
+		contentEl.createEl("h2", { text: `Add item to ${this.report} ${this.type}` });
 
-		containerEl.empty();
+		const input = contentEl.createEl("input", { type: "text"});
 
-		containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
+		const submitBtn = contentEl.createEl("button", { text: "Add" });
+		submitBtn.onclick = async () => {
+			const noteContent = input.value;
+			if (noteContent) {
+				await this.insertIntoNote(noteContent);
+				new Notice("Item added!");
+				this.close();
+			}
+		};
+	}
 
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue('')
-				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
+	async insertIntoNote(content: string) {
+		const files = this.app.vault.getMarkdownFiles();
+		const targetTag = this.type;
+		const rule = this.settings.rules.find((r) => r.tag === targetTag);
+
+		if (!rule) {
+			new Notice("No rule found for this note type.");
+			return;
+		}
+
+		for (const file of files) {
+			const metadata = this.app.metadataCache.getFileCache(file);
+			if (metadata?.tags?.some((t) => t.tag === `#${targetTag}`)) {
+				const fileContent = await this.app.vault.read(file);
+				const updatedContent = fileContent.replace(
+					rule.heading,
+					`${rule.heading}\n- ${content}`
+				);
+
+				await this.app.vault.modify(file, updatedContent);
+				break;
+			}
+		}
+	}
+
+	onClose() {
+		this.contentEl.empty();
 	}
 }
+
+
+class SampleSettingTab extends PluginSettingTab {
+	plugin: MyPlugin;
+  
+	constructor(app: App, plugin: MyPlugin) {
+	  super(app, plugin);
+	  this.plugin = plugin;
+	}
+  
+	display(): void {
+	  const { containerEl } = this;
+	  containerEl.empty();
+	  containerEl.createEl("h2", { text: "Rules Configuration" });
+  
+	  this.plugin.settings.rules.forEach((rule, index) => {
+		new Setting(containerEl)
+		  .setName(`Rule ${index + 1}`)
+		  .setDesc(`Tag: ${rule.tag}, Heading: ${rule.heading}`)
+		  .addText((text) =>
+			text.setValue(rule.tag).onChange(async (value) => {
+			  rule.tag = value;
+			  await this.plugin.saveSettings();
+			})
+		  )
+		  .addText((text) =>
+			text.setValue(rule.heading).onChange(async (value) => {
+			  rule.heading = value;
+			  await this.plugin.saveSettings();
+			})
+		  );
+	  });
+	}
+}
+
