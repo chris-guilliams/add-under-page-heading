@@ -36,24 +36,6 @@ export default class MyPlugin extends Plugin {
 
 		this.addStatusBarItem().setText('Status Bar Text');
 
-		this.addCommand({
-			id: 'open-sample-modal',
-			name: 'Open Sample Modal',
-			callback: () => {
-				console.log('Simple Callback');
-			},
-			checkCallback: (checking: boolean) => {
-				let leaf = this.app.workspace.activeLeaf;
-				if (leaf) {
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-					return true;
-				}
-				return false;
-			}
-		});
-
 		this.addSettingTab(new SampleSettingTab(this.app, this));
 
 		this.registerCodeMirror((cm: CodeMirror.Editor) => {
@@ -110,7 +92,7 @@ export default class MyPlugin extends Plugin {
 			console.log(`Registering command: ${commandName}`);
 	  
 			this.addCommand({
-			  id: `add-item-to-${fileName}-${rule.tag}`,
+			  id: `add-under-page-heading-${fileName}-${rule.tag}`,
 			  name: commandName,
 			  callback: () => {
 				new AddItemModal(this.app, this.settings, file, rule).open();

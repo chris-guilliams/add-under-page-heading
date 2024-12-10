@@ -1,6 +1,6 @@
 {
-	"id": "add-item-to-pages-from-command-window",
-	"name": "Add item to pages from command window",
+	"id": "add-under-page-heading",
+	"name": "Add under page heading",
 	"version": "0.1.0",
 	"minAppVersion": "0.9.12",
 	"description": "Configure rules for the exposing of specific pages within the command palette. Users can then add short items to a specific heading as a bulleted list item underneath that heading.",
