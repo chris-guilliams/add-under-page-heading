@@ -87,7 +87,7 @@ export default class MyPlugin extends Plugin {
 	  
 		  taggedFiles.forEach((file) => {
 			const fileName = file.basename;
-			const commandName = `Add item to ${fileName} (${rule.tag})`;
+			const commandName = `${fileName} (${rule.heading})`;
 	  
 			console.log(`Registering command: ${commandName}`);
 	  
