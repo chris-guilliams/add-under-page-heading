@@ -28,7 +28,7 @@ export default class MyPlugin extends Plugin {
 			this.registerCommandsBasedOnTags();
 		});
 
-		this.addRibbonIcon('dice', 'Sample Plugin', () => {
+		this.addRibbonIcon('between-horizontal-start', 'Add Under Page Heading', () => {
 			const setting = (this.app as any).setting;
 			setting.open();
 			setting.openTabById(this.manifest.id);	
