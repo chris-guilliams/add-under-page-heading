@@ -29,7 +29,10 @@ export default class MyPlugin extends Plugin {
 		});
 
 		this.addRibbonIcon('dice', 'Sample Plugin', () => {
-			new Notice('This is a notice!');
+			// Open the plugin's settings tab
+			const setting = (this.app as any).setting;
+			setting.open();
+			setting.openTabById(this.manifest.id);	
 		});
 
 		this.addStatusBarItem().setText('Status Bar Text');
