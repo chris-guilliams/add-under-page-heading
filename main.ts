@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
 
 interface Rule {
 	tag: string;
@@ -21,20 +21,11 @@ export default class MyPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-
-		const directReports = ["Chase", "Mo", "Alex"]; // Example list of direct reports
-		const noteTypes = ["1-1", "career"];
-	  
-		directReports.forEach((report) => {
-		  noteTypes.forEach((type) => {
-			this.addCommand({
-			  id: `add-item-to-${report}-${type}`,
-			  name: `Add item to ${report} ${type}`,
-			  callback: () => {
-				new AddItemModal(this.app, this.settings, report, type).open();
-			  },
-			});
-		  });
+		
+		// Wait for metadata to be fully loaded
+		this.app.metadataCache.on('resolved', () => {
+			console.log("Metadata fully loaded. Registering commands...");
+			this.registerCommandsBasedOnTags();
 		});
 
 		this.addRibbonIcon('dice', 'Sample Plugin', () => {
@@ -85,6 +76,47 @@ export default class MyPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+
+	registerCommandsBasedOnTags() {
+		const files = this.app.vault.getMarkdownFiles();
+		console.log("All Markdown files:", files);
+	  
+		this.settings.rules.forEach((rule) => {
+		  console.log(`Looking for files with tag: #${rule.tag}`);
+	  
+		  const taggedFiles = files.filter((file) => {
+			const metadata = this.app.metadataCache.getFileCache(file);
+			const fileTags = metadata?.frontmatter?.tags;
+	  
+			// console.log(`File: ${file.name}`, fileTags);
+	  
+			if (Array.isArray(fileTags)) {
+			  return fileTags.includes(rule.tag);
+			} else if (typeof fileTags === 'string') {
+			  return fileTags === rule.tag;
+			}
+	  
+			return false;
+		  });
+	  
+		  console.log(`Files found for tag #${rule.tag}:`, taggedFiles);
+	  
+		  taggedFiles.forEach((file) => {
+			const fileName = file.basename;
+			const commandName = `Add item to ${fileName} (${rule.tag})`;
+	  
+			console.log(`Registering command: ${commandName}`);
+	  
+			this.addCommand({
+			  id: `add-item-to-${fileName}-${rule.tag}`,
+			  name: commandName,
+			  callback: () => {
+				new AddItemModal(this.app, this.settings, file, rule).open();
+			  },
+			});
+		  });
+		});
+	}
 }
 
 class SampleModal extends Modal {
@@ -104,64 +136,54 @@ class SampleModal extends Modal {
 }
 
 class AddItemModal extends Modal {
+	file: TFile;
+	rule: Rule;
 	settings: MyPluginSettings;
-	report: string;
-	type: string;
-
-	constructor(app: App, settings: MyPluginSettings, report: string, type: string) {
-		super(app);
-		this.settings = settings;
-		this.report = report;
-		this.type = type;
+  
+	constructor(app: App, settings: MyPluginSettings, file: TFile, rule: Rule) {
+	  super(app);
+	  this.settings = settings;
+	  this.file = file;
+	  this.rule = rule;
 	}
-
+  
 	onOpen() {
-		const { contentEl } = this;
-		contentEl.createEl("h2", { text: `Add item to ${this.report} ${this.type}` });
-
-		const input = contentEl.createEl("input", { type: "text"});
-
-		const submitBtn = contentEl.createEl("button", { text: "Add" });
-		submitBtn.onclick = async () => {
-			const noteContent = input.value;
-			if (noteContent) {
-				await this.insertIntoNote(noteContent);
-				new Notice("Item added!");
-				this.close();
-			}
-		};
+	  const { contentEl } = this;
+	  contentEl.createEl("h2", { text: `Add item to ${this.file.basename}` });
+  
+	  const input = contentEl.createEl("input", { type: "text"});
+  
+	  const submitBtn = contentEl.createEl("button", { text: "Add" });
+	  submitBtn.onclick = async () => {
+		const noteContent = input.value;
+		if (noteContent) {
+		  await this.insertIntoNote(noteContent);
+		  new Notice("Item added!");
+		  this.close();
+		}
+	  };
 	}
-
+  
 	async insertIntoNote(content: string) {
-		const files = this.app.vault.getMarkdownFiles();
-		const targetTag = this.type;
-		const rule = this.settings.rules.find((r) => r.tag === targetTag);
-
-		if (!rule) {
-			new Notice("No rule found for this note type.");
-			return;
-		}
-
-		for (const file of files) {
-			const metadata = this.app.metadataCache.getFileCache(file);
-			if (metadata?.tags?.some((t) => t.tag === `#${targetTag}`)) {
-				const fileContent = await this.app.vault.read(file);
-				const updatedContent = fileContent.replace(
-					rule.heading,
-					`${rule.heading}\n- ${content}`
-				);
-
-				await this.app.vault.modify(file, updatedContent);
-				break;
-			}
-		}
+	  const fileContent = await this.app.vault.read(this.file);
+	  const headingPattern = new RegExp(`(${this.rule.heading})`, "i");
+  
+	  if (headingPattern.test(fileContent)) {
+		const updatedContent = fileContent.replace(
+		  headingPattern,
+		  `$1\n- ${content}`
+		);
+  
+		await this.app.vault.modify(this.file, updatedContent);
+	  } else {
+		new Notice(`Heading "${this.rule.heading}" not found in ${this.file.basename}`);
+	  }
 	}
-
+  
 	onClose() {
-		this.contentEl.empty();
+	  this.contentEl.empty();
 	}
 }
-
 
 class SampleSettingTab extends PluginSettingTab {
 	plugin: MyPlugin;
