@@ -29,7 +29,6 @@ export default class MyPlugin extends Plugin {
 		});
 
 		this.addRibbonIcon('dice', 'Sample Plugin', () => {
-			// Open the plugin's settings tab
 			const setting = (this.app as any).setting;
 			setting.open();
 			setting.openTabById(this.manifest.id);	
@@ -94,7 +93,7 @@ export default class MyPlugin extends Plugin {
 			// console.log(`File: ${file.name}`, fileTags);
 	  
 			if (Array.isArray(fileTags)) {
-			  return fileTags.includes(rule.tag);
+			  return fileTags.includes(rule.tag) && fileTags.includes("active");
 			} else if (typeof fileTags === 'string') {
 			  return fileTags === rule.tag;
 			}
