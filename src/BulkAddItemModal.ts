@@ -1,4 +1,4 @@
-import { MyPluginSettings, Rule } from "main";
+import { MyPluginSettings, Rule } from 'src/MyPluginSettings';
 import { Modal, App, Notice } from "obsidian";
 
 export class BulkAddItemModal extends Modal {
