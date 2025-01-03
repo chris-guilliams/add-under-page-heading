@@ -18,7 +18,7 @@ export default {
     sourcemap: 'inline',
     sourcemapExcludeSources: isProd,
     format: 'cjs',
-    exports: 'default',
+    exports: 'named',
     banner,
   },
   external: ['obsidian'],

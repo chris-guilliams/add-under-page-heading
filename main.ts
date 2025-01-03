@@ -1,11 +1,12 @@
+import { BulkAddItemModal } from 'bulkAddItemModal';
 import { App, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
 
-interface Rule {
+export interface Rule {
 	tag: string;
 	heading: string;
 }
 
-interface MyPluginSettings {
+export interface MyPluginSettings {
 	rules: Rule[];
 }
 
@@ -16,7 +17,7 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	],
 };
 
-export default class MyPlugin extends Plugin {
+export class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
 
 	async onload() {
@@ -26,6 +27,14 @@ export default class MyPlugin extends Plugin {
 		this.app.metadataCache.on('resolved', () => {
 			console.log("Metadata fully loaded. Registering commands...");
 			this.registerCommandsBasedOnTags();
+
+			this.addCommand({
+				id: 'add-item-to-all-matching-notes',
+				name: 'Add item to all notes matching a rule',
+				callback: () => {
+				  new BulkAddItemModal(this.app, this.settings).open();
+				},
+			  });
 		});
 
 		this.addRibbonIcon('between-horizontal-start', 'Add Under Page Heading', () => {
@@ -100,22 +109,6 @@ export default class MyPlugin extends Plugin {
 			});
 		  });
 		});
-	}
-}
-
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
-
-	onOpen() {
-		let {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		let {contentEl} = this;
-		contentEl.empty();
 	}
 }
 
@@ -202,3 +195,4 @@ class SampleSettingTab extends PluginSettingTab {
 	}
 }
 
+export default MyPlugin;
