@@ -3,6 +3,7 @@ import { AddItemModal } from 'src/AddItemModal';
 import { BulkAddItemModal } from 'src/bulkAddItemModal';
 import { MyPluginSettings, DEFAULT_SETTINGS } from 'src/MyPluginSettings';
 import { SettingTab } from 'src/SettingTab';
+import { EditorModal } from './EditorModal';
 
 
 export class AddItemsToNotesFromCommandPalette extends Plugin {
@@ -91,7 +92,7 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 					id: `add-under-page-heading-${fileName}-${rule.tag}`,
 					name: commandName,
 					callback: () => {
-						new AddItemModal(this.app, this.settings, file, rule).open();
+						new EditorModal(this.app, file, rule).open();
 					},
 				});
 			});
