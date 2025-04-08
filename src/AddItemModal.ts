@@ -15,13 +15,20 @@ export class AddItemModal extends Modal {
 
 	onOpen() {
 		const { contentEl } = this;
-		contentEl.createEl("h2", { text: `Add item to ${this.file.basename}` });
+		const title = contentEl.createEl("h2", { text: `Add item to ${this.file.basename}` });
+		title.style.marginBottom = "1rem";
 
-		const input = contentEl.createEl("input", { type: "text" });
+		const textarea = contentEl.createEl("textarea");
+		textarea.style.display = "block";
+		textarea.style.marginBottom = "1rem";
+		textarea.style.width = "100%";
+		textarea.style.height = "8rem"; // adjust height as needed
+		textarea.placeholder = "Enter your note here...";
 
 		const submitBtn = contentEl.createEl("button", { text: "Add" });
+		submitBtn.style.display = "block";
 		submitBtn.onclick = async () => {
-			const noteContent = input.value;
+			const noteContent = textarea.value;
 			if (noteContent) {
 				await this.insertIntoNote(noteContent);
 				new Notice("Item added!");
