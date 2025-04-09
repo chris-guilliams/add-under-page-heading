@@ -1,5 +1,5 @@
 import { AddItemsToNotesFromCommandPalette } from 'src/Plugin';
-import { PluginSettingTab, App, Setting } from 'obsidian';
+import { PluginSettingTab, App, Setting, Notice } from 'obsidian';
 
 export class SettingTab extends PluginSettingTab {
 	plugin: AddItemsToNotesFromCommandPalette;
@@ -65,5 +65,17 @@ export class SettingTab extends PluginSettingTab {
 						this.display(); // Re-render UI
 					})
 			);
+
+		new Setting(containerEl)
+			.addButton(btn =>
+				btn
+					.setButtonText("Reindex rules and notes")
+					.setTooltip("Refresh all command palette entries based on current rules and note metadata.")
+					.onClick(() => {
+						this.plugin.registerCommandsBasedOnTags();
+						new Notice("Command palette updated with latest rules and notes.");
+					})
+			);
+
 	}
 }

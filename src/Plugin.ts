@@ -7,6 +7,7 @@ import { EditorModal } from './EditorModal';
 
 export class AddItemsToNotesFromCommandPalette extends Plugin {
 	settings: MyPluginSettings;
+	private registeredCommandIds = new Set<string>();
 
 	async onload() {
 		await this.loadSettings();
@@ -61,40 +62,43 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 	registerCommandsBasedOnTags() {
 		const files = this.app.vault.getMarkdownFiles();
 		console.log("All Markdown files:", files);
-
+	
 		this.settings.rules.forEach((rule) => {
 			console.log(`Looking for files with tag: #${rule.tag}`);
-
+	
 			const taggedFiles = files.filter((file) => {
 				const metadata = this.app.metadataCache.getFileCache(file);
 				const fileTags = metadata?.frontmatter?.tags;
-
-				// console.log(`File: ${file.name}`, fileTags);
+	
 				if (Array.isArray(fileTags)) {
 					return fileTags.includes(rule.tag) && fileTags.includes("active");
 				} else if (typeof fileTags === 'string') {
 					return fileTags === rule.tag;
 				}
-
+	
 				return false;
 			});
-
+	
 			console.log(`Files found for tag #${rule.tag}:`, taggedFiles);
-
+	
 			taggedFiles.forEach((file) => {
 				const fileName = file.basename;
-				const commandName = `${fileName} (${rule.heading})`;
-
-				console.log(`Registering command: ${commandName}`);
-
-				this.addCommand({
-					id: `add-under-page-heading-${fileName}-${rule.tag}`,
-					name: commandName,
+				const commandId = `add-under-page-heading-${file.path.replace(/[^a-zA-Z0-9_-]/g, "_")}-${rule.tag}`;
+	
+				console.log(`Registering command: ${commandId}`);
+	
+				const command = this.addCommand({
+					id: commandId,
+					name: `${fileName} (${rule.heading})`,
 					callback: () => {
 						new EditorModal(this.app, file, rule).open();
 					},
 				});
+	
+				// Register with lifecycle so Obsidian will clean it up when plugin reloads or reindex runs again
+				this.register(command);
 			});
 		});
 	}
+	
 }
