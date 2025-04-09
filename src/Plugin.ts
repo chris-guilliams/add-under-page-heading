@@ -24,6 +24,14 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 					new BulkAddItemModal(this.app, this.settings).open();
 				},
 			});
+
+			this.addCommand({
+				id: 'reindex-rules-and-notes',
+				name: 'Reindex rules and notes',
+				callback: () => {
+					this.registerCommandsBasedOnTags()
+				},
+			});
 		});
 
 		this.addRibbonIcon('between-horizontal-start', 'Add Under Page Heading', () => {
