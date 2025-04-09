@@ -1,6 +1,6 @@
 {
   "name": "add-item-to-notes-from-command-palette",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "This is a plugin for Obsidian which enables the user to add text to groups of notes based on configured rules.",
   "main": "main.js",
   "scripts": {

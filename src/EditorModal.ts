@@ -42,7 +42,6 @@ export class EditorModal extends Modal {
 		});
 
 		const submitBtn = contentEl.createEl("button", { text: "Add" });
-		submitBtn.style.marginTop = "1rem";
 
 		submitBtn.onclick = async () => {
 			const noteContent = this.editor.value.trim();

@@ -1,7 +1,7 @@
 {
 	"id": "add-under-page-heading",
 	"name": "Add Under Page Heading",
-	"version": "0.4.0",
+	"version": "0.5.0",
 	"minAppVersion": "0.9.12",
 	"description": "Configure rules for the exposing of specific pages within the command palette. Users can then add short items to a specific heading as a bulleted list item underneath that heading.",
 	"author": "Chris Guilliams",
