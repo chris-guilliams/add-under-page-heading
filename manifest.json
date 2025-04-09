@@ -5,6 +5,7 @@
 	"minAppVersion": "0.9.12",
 	"description": "Configure rules for the exposing of specific pages within the command palette. Users can then add short items to a specific heading as a bulleted list item underneath that heading.",
 	"author": "Chris Guilliams",
-	"authorUrl": "https://obsidian.md/about",
-	"isDesktopOnly": false
+	"authorUrl": "https://github.com/chris-guilliams/",
+	"isDesktopOnly": false,
+	"main": "main.js"
 }
