@@ -1,57 +1,86 @@
-## Obsidian Sample Plugin
+# Add Under Page Heading
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+**Add items to specific sections in tagged notes via the command palette.**
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+This plugin allows you to quickly add notes or action items to specific headings in your Obsidian vault—without opening the target file. It's ideal for managers, team leads, or anyone who maintains recurring notes for multiple topics or people.
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+---
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Changes the default font color to red using `styles.css`.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+## ✨ Features
 
-### First time developing plugins?
+- 🧠 Add thoughts, todos, or notes inline using the command palette.
+- 🏷️ Supports tagging-based targeting of notes (via YAML frontmatter).
+- 🔻 Insert content under a specific heading in the target note.
+- 📝 Rich markdown editor with Obsidian-style shortcuts (`Cmd+K`, `**bold**`, etc.).
+    - Uses [Fevol](https://gist.github.com/Fevol)'s [Embeddable CM Markdown Editor solution](https://gist.github.com/Fevol/caa478ce303e69eabede7b12b2323838)
+- 🔄 "Reindex" button in settings to rescan notes and update commands.
+- 🔧 Fully configurable rules for managing where and how content is inserted.
 
-Quick starting guide for new plugin devs:
+---
 
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+## ⚙️ How It Works
 
-### Releasing new releases
+1. **Tag your notes** (in frontmatter) with things like `career`, `1-1`, `active`, etc.
+2. **Define rules** in the plugin settings:
+   - A `tag` to match against your notes’ frontmatter.
+   - A `heading` under which new content should be inserted.
+3. **Use the command palette** to choose a matching file + rule.
+4. A modal appears with a rich markdown editor.
+5. Submit your entry—your content is inserted under the configured heading in the target file.
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments.
-- Publish the release.
+---
 
-### Adding your plugin to the community plugin list
+## 🛠 Example Use Case
 
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+### Inserting Under a Heading of a Particular Note
+You're a software engineering manager with a note like:
 
-### How to use
+```markdown
+---
+tags: [direct-report, career, active]
+---
 
-- Clone this repo.
-- `npm i` or `yarn` to install dependencies
-- `npm run dev` to start compilation in watch mode.
+## Career Discussion
 
-### Manually installing the plugin
+- Deliver feedback regarding recent performance
+```
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+If you've configured a rule with:
 
-### API Documentation
+    tag: career
+    heading: ## Career Discussion
 
-See https://github.com/obsidianmd/obsidian-api
+You can run the command `Add Under Page Heading: [Page Title]: (## Career Discussion)` and append notes directly under that section of that particular note.
+
+![Add Item Modal](./assets/add-item-modal.png)
+
+### Inserting Under a Heading of All Notes for a Given Rule
+
+If there are multiple files within the Vault that match a configured rule and you would like to insert into all of them the command `Add Under Page Heading: Add item to all notes matching a rule`.
+
+
+![Add Item Modal](./assets/add-to-all-matching-notes.png)
+
+---
+
+## 🧩 Settings
+
+🧱 Define as many tag + heading rules as you'd like.
+
+➕ Add/remove rules from the plugin settings tab.
+
+🔁 Click "Reindex rules and notes" after making changes to ensure the plugin regenerates its command palette options.
+
+![Settings](./assets//settings.png)
+
+---
+
+## 📦 Installation
+
+### Manual
+
+Build the plugin using `npm run build`.
+
+Copy `main.js`, `manifest.json`, and (optionally) `styles.css` to: `.obsidian/plugins/add-under-page-heading/`
+
+---
