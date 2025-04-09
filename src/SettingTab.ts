@@ -15,19 +15,55 @@ export class SettingTab extends PluginSettingTab {
 		containerEl.createEl("h2", { text: "Rules Configuration" });
 
 		this.plugin.settings.rules.forEach((rule, index) => {
-			new Setting(containerEl)
-				.setName(`Rule ${index + 1}`)
-				.setDesc(`Tag: ${rule.tag}, Heading: ${rule.heading}`)
-				.addText((text) => text.setValue(rule.tag).onChange(async (value) => {
-					rule.tag = value;
-					await this.plugin.saveSettings();
-				})
+			const ruleSetting = new Setting(containerEl)
+				.setName(`Rule ${index + 1}`);
+
+			ruleSetting.controlEl.style.display = 'flex';
+			ruleSetting.controlEl.style.gap = '0.5rem';
+			ruleSetting.controlEl.style.flexWrap = 'wrap';
+
+			ruleSetting
+				.addText(text =>
+					text
+						.setPlaceholder("Tag")
+						.setValue(rule.tag)
+						.onChange(async (value) => {
+							rule.tag = value;
+							await this.plugin.saveSettings();
+						})
 				)
-				.addText((text) => text.setValue(rule.heading).onChange(async (value) => {
-					rule.heading = value;
-					await this.plugin.saveSettings();
-				})
+				.addText(text =>
+					text
+						.setPlaceholder("Heading")
+						.setValue(rule.heading)
+						.onChange(async (value) => {
+							rule.heading = value;
+							await this.plugin.saveSettings();
+						})
+				)
+				.addExtraButton((btn) =>
+					btn
+						.setIcon("trash")
+						.setTooltip("Delete Rule")
+						.onClick(async () => {
+							this.plugin.settings.rules.splice(index, 1);
+							await this.plugin.saveSettings();
+							this.display(); // Re-render UI
+						})
 				);
 		});
+
+		// Add new rule button
+		new Setting(containerEl)
+			.addButton((btn) =>
+				btn
+					.setButtonText("Add New Rule")
+					.setCta()
+					.onClick(async () => {
+						this.plugin.settings.rules.push({ tag: "", heading: "" });
+						await this.plugin.saveSettings();
+						this.display(); // Re-render UI
+					})
+			);
 	}
 }
