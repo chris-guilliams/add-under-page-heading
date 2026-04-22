@@ -1,5 +1,5 @@
 import { Plugin } from 'obsidian';
-import { BulkAddItemModal } from 'src/bulkAddItemModal';
+import { BulkAddItemModal } from 'src/BulkAddItemModal';
 import { MyPluginSettings, DEFAULT_SETTINGS } from 'src/MyPluginSettings';
 import { SettingTab } from 'src/SettingTab';
 import { EditorModal } from './EditorModal';
