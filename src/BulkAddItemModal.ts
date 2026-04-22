@@ -1,5 +1,5 @@
 import { AddUnderPageHeadingSettings, Rule } from 'src/MyPluginSettings';
-import { Modal, App, Notice, TFile } from "obsidian";
+import { Modal, App, Notice, parseFrontMatterTags } from "obsidian";
 import { EmbeddableMarkdownEditor } from './EmbeddableEditor';
 
 export class BulkAddItemModal extends Modal {
@@ -11,62 +11,65 @@ export class BulkAddItemModal extends Modal {
       this.settings = settings;
     }
   
-    async onOpen() {
-      const { contentEl } = this;
-      this.modalEl.addClass('add-under-page-heading-modal');
-  
-      contentEl.createEl('h2', { text: 'Add item to all matching notes' });
-  
-      // Dropdown for selecting a rule
-      const select = contentEl.createEl('select');
-      select.addClass('add-under-page-heading-margin-bottom');
-      this.settings.rules.forEach((rule, index) => {
-        const option = select.createEl('option', { text: `Rule ${index + 1}: ${rule.tag}` });
-        option.value = index.toString();
-      });
-  
-      // Input for the item to add
-      const editorContainer = contentEl.createDiv({ cls: 'add-under-page-heading-editor-container' });
+    onOpen() {
+      // Use an IIFE to handle the async initialization since onOpen must be void
+      void (async () => {
+        const { contentEl } = this;
+        this.modalEl.addClass('add-under-page-heading-modal');
+    
+        contentEl.createEl('h2', { text: 'Add item to all matching notes' });
+    
+        // Dropdown for selecting a rule
+        const select = contentEl.createEl('select');
+        select.addClass('add-under-page-heading-margin-bottom');
+        this.settings.rules.forEach((rule, index) => {
+          const option = select.createEl('option', { text: `Rule ${index + 1}: ${rule.tag}` });
+          option.value = index.toString();
+        });
+    
+        // Input for the item to add
+        const editorContainer = contentEl.createDiv({ cls: 'add-under-page-heading-editor-container' });
 
-      this.editor = await EmbeddableMarkdownEditor.create(this.app, editorContainer, {
-          value: "",
-          onEnter: (editor, mod) => {
-              if (mod) {
-                const ruleIndex = parseInt(select.value, 10);
-                const rule = this.settings.rules[ruleIndex];
-                this.addToAllMatchingNotes(rule, editor.value).catch(err => {
-                    new Notice(`Error adding item: ${err}`);
-                });
-                  return true;
-              }
-              return false;
-          },
-          onEscape: () => {
-              this.close();
-          },
-          onSubmit: (editor) => {
-            const ruleIndex = parseInt(select.value, 10);
-            const rule = this.settings.rules[ruleIndex];
-            this.addToAllMatchingNotes(rule, editor.value).catch(err => {
-                new Notice(`Error adding item: ${err}`);
-            });
+        this.editor = await EmbeddableMarkdownEditor.create(this.app, editorContainer, {
+            value: "",
+            onEnter: (editor, mod) => {
+                if (mod) {
+                  const ruleIndex = parseInt(select.value, 10);
+                  const rule = this.settings.rules[ruleIndex];
+                  this.addToAllMatchingNotes(rule, editor.value).catch(err => {
+                      new Notice(`Error adding item: ${err}`);
+                  });
+                    return true;
+                }
+                return false;
+            },
+            onEscape: () => {
+                this.close();
+            },
+            onSubmit: (editor) => {
+              const ruleIndex = parseInt(select.value, 10);
+              const rule = this.settings.rules[ruleIndex];
+              this.addToAllMatchingNotes(rule, editor.value).catch(err => {
+                  new Notice(`Error adding item: ${err}`);
+              });
+            }
+        });
+
+        // Button to add the item
+        const submitBtn = contentEl.createEl('button', { text: 'Add item to all' });
+        
+        submitBtn.onclick = async () => {
+          const ruleIndex = parseInt(select.value, 10);
+          const rule = this.settings.rules[ruleIndex];
+          const itemContent = this.editor.value.trim();
+    
+          if (itemContent && rule) {
+            await this.addToAllMatchingNotes(rule, itemContent);
+            new Notice('Item added to all matching notes!');
+            this.close();
           }
-      });
-
-      // Button to add the item
-      const submitBtn = contentEl.createEl('button', { text: 'Add item to all' });
-      
-      submitBtn.onclick = async () => {
-        const ruleIndex = parseInt(select.value, 10);
-        const rule = this.settings.rules[ruleIndex];
-        const itemContent = this.editor.value.trim();
-  
-        if (itemContent && rule) {
-          await this.addToAllMatchingNotes(rule, itemContent);
-          new Notice('Item added to all matching notes!');
-          this.close();
-        }
-      };
+        };
+      })();
     }
   
     async addToAllMatchingNotes(rule: Rule, content: string) {
@@ -74,15 +77,9 @@ export class BulkAddItemModal extends Modal {
   
       const matchingFiles = files.filter((file) => {
         const metadata = this.app.metadataCache.getFileCache(file);
-        const fileTags = metadata?.frontmatter?.tags;
+        const fileTags = parseFrontMatterTags(metadata?.frontmatter) || [];
   
-        if (typeof fileTags === 'string') {
-          return fileTags === rule.tag;
-        } else if (Array.isArray(fileTags)) {
-          return fileTags.includes(rule.tag);
-        }
-  
-        return false;
+        return fileTags.includes(rule.tag);
       });
   
       for (const file of matchingFiles) {
@@ -101,4 +98,3 @@ export class BulkAddItemModal extends Modal {
       this.contentEl.empty();
     }
   }
-  

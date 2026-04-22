@@ -29,7 +29,7 @@ interface WidgetEditorView {
 	editable: boolean;
 	showEditor(): void;
 	editMode: {
-		editMode: any;
+		editMode: unknown;
 	} | null;
 	unload(): void;
 }
@@ -39,9 +39,13 @@ interface WidgetEditorView {
  */
 declare module "obsidian" {
 	interface App {
+		setting: {
+			open(): void;
+			openTabById(id: string): void;
+		};
 		embedRegistry: {
 			embedByExtension: {
-				md: (options: any, file: TFile, content: string) => WidgetEditorView;
+				md: (options: unknown, file: TFile, content: string) => WidgetEditorView;
 			};
 		};
 		scope: Scope;
@@ -51,21 +55,21 @@ declare module "obsidian" {
 		};
 	}
 	interface Workspace {
-		activeEditor: any;
+		activeEditor: unknown;
 	}
 }
 
-let cachedPrototype: Constructor<any> | null = null;
+let cachedPrototype: Constructor<unknown> | null = null;
 
-async function getEditorPrototype(app: App): Promise<Constructor<any>> {
+async function getEditorPrototype(app: App): Promise<Constructor<unknown>> {
 	if (cachedPrototype) return cachedPrototype;
 
 	// 1. Try "Smart Discovery": Find an existing Markdown editor in the workspace
 	const activeLeaf = app.workspace.getLeavesOfType("markdown")[0];
-	if (activeLeaf && (activeLeaf.view as any).editMode) {
-		const MarkdownEditor = Object.getPrototypeOf(Object.getPrototypeOf((activeLeaf.view as any).editMode));
+	if (activeLeaf && (activeLeaf.view as unknown).editMode) {
+		const MarkdownEditor = Object.getPrototypeOf(Object.getPrototypeOf((activeLeaf.view as unknown).editMode));
 		if (MarkdownEditor && MarkdownEditor.constructor) {
-			cachedPrototype = MarkdownEditor.constructor as Constructor<any>;
+			cachedPrototype = MarkdownEditor.constructor as Constructor<unknown>;
 			return cachedPrototype;
 		}
 	}
@@ -73,12 +77,12 @@ async function getEditorPrototype(app: App): Promise<Constructor<any>> {
 	// 2. Fallback: Create a temporary editor if no markdown view is open
 	const widgetEditorView = app.embedRegistry.embedByExtension.md(
 		{ app, containerEl: document.createElement('div') },
-		null as unknown as TFile,
+		null,
 		'',
 	);
 
 	// Some versions of Obsidian require the view to be "loaded" to instantiate editMode
-	if ((widgetEditorView as any).load) (widgetEditorView as any).load();
+	if ((widgetEditorView as unknown).load) (widgetEditorView as unknown).load();
 	
 	widgetEditorView.editable = true;
 	widgetEditorView.showEditor();
@@ -99,7 +103,7 @@ async function getEditorPrototype(app: App): Promise<Constructor<any>> {
 	// Unload to remove the temporary editor
 	widgetEditorView.unload();
 
-	cachedPrototype = MarkdownEditor.constructor as Constructor<any>;
+	cachedPrototype = MarkdownEditor.constructor as Constructor<unknown>;
 	return cachedPrototype;
 }
 
@@ -136,7 +140,7 @@ const defaultProperties: MarkdownEditorProps = {
  * Uses Delegation instead of Inheritance for stability.
  */
 export class EmbeddableMarkdownEditor extends Component {
-	private instance: any; // The internal Obsidian editor instance
+	private instance: unknown; // The internal Obsidian editor instance
 	private scope: Scope;
 	private options: MarkdownEditorProps;
 
@@ -164,7 +168,7 @@ export class EmbeddableMarkdownEditor extends Component {
 			getMode: () => 'source',
 		});
 
-		this.scope = new Scope((this.app as any).scope);
+		this.scope = new Scope((this.app as unknown).scope);
 		this.scope.register(["Mod"], "Enter", () => true);
 
 		// Mock the view/owner relationship required for internal commands
@@ -177,8 +181,8 @@ export class EmbeddableMarkdownEditor extends Component {
 		// Handle active editor tracking
 		this.register(
 			around(this.app.workspace, {
-				setActiveLeaf: (oldMethod: any) =>
-					(leaf: WorkspaceLeaf, params: any) => {
+				setActiveLeaf: (oldMethod: unknown) =>
+					(leaf: WorkspaceLeaf, params: unknown) => {
 						if (!this.instance.activeCM.hasFocus)
 							oldMethod.call(this.app.workspace, leaf, params);
 					},

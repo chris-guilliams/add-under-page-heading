@@ -1,4 +1,4 @@
-import { Plugin } from 'obsidian';
+import { parseFrontMatterTags, Plugin } from 'obsidian';
 import { BulkAddItemModal } from 'src/BulkAddItemModal';
 import { AddUnderPageHeadingSettings, DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS } from 'src/MyPluginSettings';
 import { SettingTab } from 'src/SettingTab';
@@ -9,41 +9,46 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 	settings: AddUnderPageHeadingSettings;
 	private registeredCommandIds = new Set<string>();
 
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	async onload() {
 		await this.loadSettings();
 
-		// Wait for metadata to be fully loaded
-		this.app.metadataCache.on('resolved', () => {
-			this.registerCommandsBasedOnTags();
+		// Register commands immediately
+		this.registerCommandsBasedOnTags();
 
-			this.addCommand({
-				id: 'add-item-to-all-matching-notes',
-				name: 'Add item to all notes matching a rule',
-				callback: () => {
-					new BulkAddItemModal(this.app, this.settings).open();
-				},
-			});
-
-			this.addCommand({
-				id: 'reindex-rules-and-notes',
-				name: 'Reindex rules and notes',
-				callback: () => {
-					this.registerCommandsBasedOnTags()
-				},
-			});
+		this.addCommand({
+			id: 'add-item-to-all-matching-notes',
+			name: 'Add item to all notes matching a rule',
+			callback: () => {
+				new BulkAddItemModal(this.app, this.settings).open();
+			},
 		});
 
+		this.addCommand({
+			id: 'reindex-rules-and-notes',
+			name: 'Reindex rules and notes',
+			callback: () => {
+				this.registerCommandsBasedOnTags()
+			},
+		});
+
+		// Also register when metadata is updated
+		this.registerEvent(
+			this.app.metadataCache.on('resolved', () => {
+				this.registerCommandsBasedOnTags();
+			})
+		);
+
 		this.addRibbonIcon('between-horizontal-start', 'Add under page heading', () => {
-			const setting = (this.app as any).setting;
-			setting.open();
-			setting.openTabById(this.manifest.id);
+			this.app.setting.open();
+			this.app.setting.openTabById(this.manifest.id);
 		});
 
 		this.addSettingTab(new SettingTab(this.app, this));
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS, await this.loadData());
+		this.settings = Object.assign({}, DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS, await this.loadData() as AddUnderPageHeadingSettings);
 	}
 
 	async saveSettings() {
@@ -52,21 +57,21 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 
 	registerCommandsBasedOnTags() {
 		const files = this.app.vault.getMarkdownFiles();
-	
+
 		this.settings.rules.forEach((rule) => {
+			if (!rule.tag) return;
+
 			const taggedFiles = files.filter((file) => {
 				const metadata = this.app.metadataCache.getFileCache(file);
-				const fileTags = metadata?.frontmatter?.tags;
-	
-				if (Array.isArray(fileTags)) {
-					return fileTags.includes(rule.tag) && fileTags.includes("active");
-				} else if (typeof fileTags === 'string') {
-					return fileTags === rule.tag;
-				}
-	
-				return false;
+				const fileTags = parseFrontMatterTags(metadata?.frontmatter) || [];
+
+				// Normalize tags (remove '#' and convert to lowercase)
+				const normalizedTags = fileTags.map(tag => tag.replace(/^#/, '').toLowerCase());
+				const targetTag = rule.tag.replace(/^#/, '').toLowerCase();
+
+				return normalizedTags.includes(targetTag);
 			});
-	
+
 			taggedFiles.forEach((file) => {
 				const fileName = file.basename;
 				const commandId = `add-under-page-heading-${file.path.replace(/[^a-zA-Z0-9_-]/g, "_")}-${rule.tag}`;
