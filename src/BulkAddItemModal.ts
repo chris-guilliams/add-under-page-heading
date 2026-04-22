@@ -92,8 +92,8 @@ export class BulkAddItemModal extends Modal {
         const headingPattern = new RegExp(`(${rule.heading})`, "i");
   
         const updatedContent = headingPattern.test(fileContent)
-          ? fileContent.replace(headingPattern, `$1\n- ${content}`)
-          : `${fileContent}\n\n${rule.heading}\n- ${content}`;
+          ? fileContent.replace(headingPattern, `$1\n${content}`)
+          : `${fileContent}\n\n${rule.heading}\n${content}`;
   
         await this.app.vault.modify(file, updatedContent);
       }

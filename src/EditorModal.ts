@@ -55,8 +55,8 @@ export class EditorModal extends Modal {
 			const headingPattern = new RegExp(`(${this.rule.heading})`, "i");
 
 			const updatedContent = headingPattern.test(original)
-				? original.replace(headingPattern, `$1\n- ${noteContent}`)
-				: `${original}\n\n${this.rule.heading}\n- ${noteContent}`;
+				? original.replace(headingPattern, `$1\n${noteContent}`)
+				: `${original}\n\n${this.rule.heading}\n${noteContent}`;
 
 			await this.app.vault.modify(this.file, updatedContent);
 			new Notice("Item added!");
