@@ -14,7 +14,6 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 
 		// Wait for metadata to be fully loaded
 		this.app.metadataCache.on('resolved', () => {
-			console.log("Metadata fully loaded. Registering commands...");
 			this.registerCommandsBasedOnTags();
 
 			this.addCommand({
@@ -43,20 +42,6 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 		this.addStatusBarItem().setText('Status bar text');
 
 		this.addSettingTab(new SettingTab(this.app, this));
-
-		this.registerCodeMirror((cm: CodeMirror.Editor) => {
-			console.log('codemirror', cm);
-		});
-
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
-
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
-	}
-
-	onunload() {
-		console.log('unloading plugin');
 	}
 
 	async loadSettings() {
@@ -69,11 +54,8 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 
 	registerCommandsBasedOnTags() {
 		const files = this.app.vault.getMarkdownFiles();
-		console.log("All Markdown files:", files);
 	
 		this.settings.rules.forEach((rule) => {
-			console.log(`Looking for files with tag: #${rule.tag}`);
-	
 			const taggedFiles = files.filter((file) => {
 				const metadata = this.app.metadataCache.getFileCache(file);
 				const fileTags = metadata?.frontmatter?.tags;
@@ -87,24 +69,17 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 				return false;
 			});
 	
-			console.log(`Files found for tag #${rule.tag}:`, taggedFiles);
-	
 			taggedFiles.forEach((file) => {
 				const fileName = file.basename;
 				const commandId = `add-under-page-heading-${file.path.replace(/[^a-zA-Z0-9_-]/g, "_")}-${rule.tag}`;
 	
-				console.log(`Registering command: ${commandId}`);
-	
-				const command = this.addCommand({
+				this.addCommand({
 					id: commandId,
 					name: `${fileName} (${rule.heading})`,
 					callback: () => {
 						new EditorModal(this.app, file, rule).open();
 					},
 				});
-	
-				// Register with lifecycle so Obsidian will clean it up when plugin reloads or reindex runs again
-				this.register(command);
 			});
 		});
 	}
