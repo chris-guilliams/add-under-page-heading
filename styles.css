@@ -1,4 +1,40 @@
-/* Sets all the text color to red! */
-body {
-    /* color: red; */
+.add-under-page-heading-modal {
+    width: 80vw;
+    max-width: 800px;
+    height: 60vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.add-under-page-heading-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+    padding-bottom: 10px;
+}
+
+.add-under-page-heading-editor-container {
+    flex-grow: 1;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    min-height: 200px;
+    background-color: var(--background-primary-alt); 
+}
+
+.add-under-page-heading-editor-container {
+    padding: 10px;
+}
+
+.add-under-page-heading-info {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.add-under-page-heading-margin-bottom {
+    margin-bottom: 1rem;
 }

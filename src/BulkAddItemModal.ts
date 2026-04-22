@@ -13,22 +13,20 @@ export class BulkAddItemModal extends Modal {
   
     async onOpen() {
       const { contentEl } = this;
+      this.modalEl.addClass('add-under-page-heading-modal');
   
       contentEl.createEl('h2', { text: 'Add item to all matching notes' });
   
       // Dropdown for selecting a rule
       const select = contentEl.createEl('select');
-      select.style.marginBottom = "1rem";
+      select.addClass('add-under-page-heading-margin-bottom');
       this.settings.rules.forEach((rule, index) => {
         const option = select.createEl('option', { text: `Rule ${index + 1}: ${rule.tag}` });
         option.value = index.toString();
       });
   
       // Input for the item to add
-      const editorContainer = contentEl.createDiv();
-      editorContainer.style.border = "1px solid var(--background-modifier-border)";
-      editorContainer.style.padding = "8px";
-      editorContainer.style.marginBottom = "1rem";
+      const editorContainer = contentEl.createDiv({ cls: 'add-under-page-heading-editor-container' });
 
       this.editor = await EmbeddableMarkdownEditor.create(this.app, editorContainer, {
           value: "",

@@ -16,13 +16,11 @@ export class EditorModal extends Modal {
 
     async onOpen() {
         const { contentEl } = this;
+        this.modalEl.addClass('add-under-page-heading-modal');
 
         contentEl.createEl("h2", { text: `Add item to ${this.file.basename}` });
 
-        const editorContainer = contentEl.createDiv();
-        editorContainer.style.border = "1px solid var(--background-modifier-border)";
-        editorContainer.style.padding = "8px";
-        editorContainer.style.marginBottom = "1rem";
+        const editorContainer = contentEl.createDiv({ cls: 'add-under-page-heading-editor-container' });
 
         this.editor = await EmbeddableMarkdownEditor.create(this.app, editorContainer, {
             value: "",
@@ -46,7 +44,6 @@ export class EditorModal extends Modal {
         });
 
         const submitBtn = contentEl.createEl("button", { text: "Add" });
-        submitBtn.style.marginTop = "1rem";
 
         submitBtn.onclick = async () => {
             const noteContent = this.editor.value.trim();

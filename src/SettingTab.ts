@@ -18,10 +18,6 @@ export class SettingTab extends PluginSettingTab {
 			const ruleSetting = new Setting(containerEl)
 				.setName(`Rule ${index + 1}`);
 
-			ruleSetting.controlEl.style.display = 'flex';
-			ruleSetting.controlEl.style.gap = '0.5rem';
-			ruleSetting.controlEl.style.flexWrap = 'wrap';
-
 			ruleSetting
 				.addText(text =>
 					text
