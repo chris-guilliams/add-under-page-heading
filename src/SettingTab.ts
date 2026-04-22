@@ -12,7 +12,7 @@ export class SettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl("h2", { text: "Rules Configuration" });
+		containerEl.createEl("h2", { text: "Rules configuration" });
 
 		this.plugin.settings.rules.forEach((rule, index) => {
 			const ruleSetting = new Setting(containerEl)
@@ -44,7 +44,7 @@ export class SettingTab extends PluginSettingTab {
 				.addExtraButton((btn) =>
 					btn
 						.setIcon("trash")
-						.setTooltip("Delete Rule")
+						.setTooltip("Delete rule")
 						.onClick(async () => {
 							this.plugin.settings.rules.splice(index, 1);
 							await this.plugin.saveSettings();
@@ -57,7 +57,7 @@ export class SettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.addButton((btn) =>
 				btn
-					.setButtonText("Add New Rule")
+					.setButtonText("Add new rule")
 					.setCta()
 					.onClick(async () => {
 						this.plugin.settings.rules.push({ tag: "", heading: "" });

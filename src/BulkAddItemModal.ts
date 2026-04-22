@@ -14,7 +14,7 @@ export class BulkAddItemModal extends Modal {
     onOpen() {
       const { contentEl } = this;
   
-      contentEl.createEl('h2', { text: 'Add Item to All Matching Notes' });
+      contentEl.createEl('h2', { text: 'Add item to all matching notes' });
   
       // Dropdown for selecting a rule
       const select = contentEl.createEl('select');
@@ -52,7 +52,7 @@ export class BulkAddItemModal extends Modal {
       });
 
       // Button to add the item
-      const submitBtn = contentEl.createEl('button', { text: 'Add Item to All' });
+      const submitBtn = contentEl.createEl('button', { text: 'Add item to all' });
       
       submitBtn.onclick = async () => {
         const ruleIndex = parseInt(select.value, 10);

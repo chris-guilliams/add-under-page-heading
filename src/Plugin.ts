@@ -34,13 +34,13 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 			});
 		});
 
-		this.addRibbonIcon('between-horizontal-start', 'Add Under Page Heading', () => {
+		this.addRibbonIcon('between-horizontal-start', 'Add under page heading', () => {
 			const setting = (this.app as any).setting;
 			setting.open();
 			setting.openTabById(this.manifest.id);
 		});
 
-		this.addStatusBarItem().setText('Status Bar Text');
+		this.addStatusBarItem().setText('Status bar text');
 
 		this.addSettingTab(new SettingTab(this.app, this));
 
