@@ -1,12 +1,12 @@
 import { Plugin } from 'obsidian';
 import { BulkAddItemModal } from 'src/BulkAddItemModal';
-import { MyPluginSettings, DEFAULT_SETTINGS } from 'src/MyPluginSettings';
+import { AddUnderPageHeadingSettings, DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS } from 'src/MyPluginSettings';
 import { SettingTab } from 'src/SettingTab';
 import { EditorModal } from './EditorModal';
 
 
 export class AddItemsToNotesFromCommandPalette extends Plugin {
-	settings: MyPluginSettings;
+	settings: AddUnderPageHeadingSettings;
 	private registeredCommandIds = new Set<string>();
 
 	async onload() {
@@ -39,13 +39,11 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 			setting.openTabById(this.manifest.id);
 		});
 
-		this.addStatusBarItem().setText('Status bar text');
-
 		this.addSettingTab(new SettingTab(this.app, this));
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.settings = Object.assign({}, DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS, await this.loadData());
 	}
 
 	async saveSettings() {

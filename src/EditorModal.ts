@@ -14,7 +14,7 @@ export class EditorModal extends Modal {
 		this.rule = rule;
 	}
 
-	onOpen() {
+	async onOpen() {
 		const { contentEl } = this;
 
 		contentEl.createEl("h2", { text: `Add item to ${this.file.basename}` });
@@ -24,7 +24,7 @@ export class EditorModal extends Modal {
 		editorContainer.style.padding = "8px";
 		editorContainer.style.marginBottom = "1rem";
 
-		this.editor = new EmbeddableMarkdownEditor(this.app, editorContainer, {
+		this.editor = await EmbeddableMarkdownEditor.create(this.app, editorContainer, {
 			value: "",
 			onEnter: (editor, mod) => {
 				if (mod) {

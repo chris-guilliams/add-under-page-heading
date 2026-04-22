@@ -12,7 +12,7 @@ export class SettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl("h2", { text: "Rules configuration" });
+		new Setting(containerEl).setName("Rules configuration").setHeading();
 
 		this.plugin.settings.rules.forEach((rule, index) => {
 			const ruleSetting = new Setting(containerEl)

@@ -1,17 +1,17 @@
-import { MyPluginSettings, Rule } from 'src/MyPluginSettings';
+import { AddUnderPageHeadingSettings, Rule } from 'src/MyPluginSettings';
 import { Modal, App, Notice, TFile } from "obsidian";
 import { EmbeddableMarkdownEditor } from './EmbeddableEditor';
 
 export class BulkAddItemModal extends Modal {
-    settings: MyPluginSettings;
+    settings: AddUnderPageHeadingSettings;
     editor: EmbeddableMarkdownEditor;
   
-    constructor(app: App, settings: MyPluginSettings) {
+    constructor(app: App, settings: AddUnderPageHeadingSettings) {
       super(app);
       this.settings = settings;
     }
   
-    onOpen() {
+    async onOpen() {
       const { contentEl } = this;
   
       contentEl.createEl('h2', { text: 'Add item to all matching notes' });
@@ -30,7 +30,7 @@ export class BulkAddItemModal extends Modal {
       editorContainer.style.padding = "8px";
       editorContainer.style.marginBottom = "1rem";
 
-      this.editor = new EmbeddableMarkdownEditor(this.app, editorContainer, {
+      this.editor = await EmbeddableMarkdownEditor.create(this.app, editorContainer, {
           value: "",
           onEnter: (editor, mod) => {
               if (mod) {
