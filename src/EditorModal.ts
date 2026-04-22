@@ -28,7 +28,9 @@ export class EditorModal extends Modal {
 			value: "",
 			onEnter: (editor, mod) => {
 				if (mod) {
-					this.submit(editor.value);
+					this.submit(editor.value).catch(err => {
+						new Notice(`Error adding item: ${err}`);
+					});
 					return true;
 				}
 				return false;
@@ -37,7 +39,9 @@ export class EditorModal extends Modal {
 				this.close();
 			},
 			onSubmit: (editor) => {
-				this.submit(editor.value);
+				this.submit(editor.value).catch(err => {
+					new Notice(`Error adding item: ${err}`);
+				});
 			}
 		});
 

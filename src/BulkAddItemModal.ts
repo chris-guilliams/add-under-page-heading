@@ -36,7 +36,9 @@ export class BulkAddItemModal extends Modal {
               if (mod) {
                 const ruleIndex = parseInt(select.value, 10);
                 const rule = this.settings.rules[ruleIndex];
-                this.addToAllMatchingNotes(rule, editor.value);
+                this.addToAllMatchingNotes(rule, editor.value).catch(err => {
+                    new Notice(`Error adding item: ${err}`);
+                });
                   return true;
               }
               return false;
@@ -47,7 +49,9 @@ export class BulkAddItemModal extends Modal {
           onSubmit: (editor) => {
             const ruleIndex = parseInt(select.value, 10);
             const rule = this.settings.rules[ruleIndex];
-            this.addToAllMatchingNotes(rule, editor.value);
+            this.addToAllMatchingNotes(rule, editor.value).catch(err => {
+                new Notice(`Error adding item: ${err}`);
+            });
           }
       });
 
