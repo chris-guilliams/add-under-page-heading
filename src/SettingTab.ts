@@ -12,11 +12,15 @@ export class SettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		new Setting(containerEl).setName("Rules configuration").setHeading();
+		new Setting(containerEl).setName("Rules configuration")
+			.setHeading()
+			// eslint-disable-next-line obsidianmd/ui/sentence-case
+			.setDesc("Specify a tag (e.g. 'daily-note') that files must contain and the heading (e.g. '## Notes') items should be inserted underneath. After updating rules you can manually index to update the command palette options.");
+
 
 		this.plugin.settings.rules.forEach((rule, index) => {
 			const ruleSetting = new Setting(containerEl)
-				.setName(`Rule ${index + 1}`);
+				.setName(`Rule ${index + 1}`)
 
 			ruleSetting
 				.addText(text =>
