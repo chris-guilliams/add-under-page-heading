@@ -9,7 +9,6 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 	settings: AddUnderPageHeadingSettings;
 	private registeredCommandIds = new Set<string>();
 
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	async onload() {
 		await this.loadSettings();
 
@@ -71,8 +70,12 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 				// Normalize tags (remove '#' and convert to lowercase)
 				const normalizedTags = fileTags.map(tag => tag.replace(/^#/, '').toLowerCase());
 				const targetTag = rule.tag.replace(/^#/, '').toLowerCase();
+				const requiredTag = this.settings.globalRequiredTag?.replace(/^#/, '').toLowerCase();
 
-				return normalizedTags.includes(targetTag);
+				const matchesRuleTag = normalizedTags.includes(targetTag);
+				const matchesGlobalTag = !requiredTag || normalizedTags.includes(requiredTag);
+
+				return matchesRuleTag && matchesGlobalTag;
 			});
 
 			taggedFiles.forEach((file) => {

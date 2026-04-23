@@ -12,6 +12,20 @@ export class SettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
+
+		new Setting(containerEl)
+			.setName("Global required tag")
+			.setDesc("If set, all matching notes must also contain this tag. Leave empty to ignore.")
+			.addText(text =>
+				text
+					.setPlaceholder("Tag")
+					.setValue(this.plugin.settings.globalRequiredTag)
+					.onChange(async (value) => {
+						this.plugin.settings.globalRequiredTag = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
 		new Setting(containerEl).setName("Rules configuration")
 			.setHeading()
 			// eslint-disable-next-line obsidianmd/ui/sentence-case
