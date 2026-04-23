@@ -48,7 +48,10 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS, await this.loadData() as AddUnderPageHeadingSettings);
+		this.settings = {
+			...DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS,
+			...(await this.loadData() as Partial<AddUnderPageHeadingSettings>),
+		};
 	}
 
 	async saveSettings() {
