@@ -26,6 +26,19 @@ export class SettingTab extends PluginSettingTab {
 					})
 			);
 
+		new Setting(containerEl)
+			.setName("Dynamic command palette entries")
+			.setDesc("If enabled, individual commands will be added to the palette for every matching note. Note: This uses internal Obsidian APIs and may require a reindex to update correctly.")
+			.addToggle(toggle =>
+				toggle
+					.setValue(this.plugin.settings.enableDynamicCommands)
+					.onChange(async (value) => {
+						this.plugin.settings.enableDynamicCommands = value;
+						await this.plugin.saveSettings();
+						this.plugin.registerDynamicCommands();
+					})
+			);
+
 		new Setting(containerEl).setName("Rules configuration")
 			.setHeading()
 			// eslint-disable-next-line obsidianmd/ui/sentence-case

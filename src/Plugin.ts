@@ -1,5 +1,6 @@
 import { parseFrontMatterTags, Plugin, TFile } from "obsidian";
 import { BulkAddItemModal } from "src/BulkAddItemModal";
+import { NoteSuggesterModal } from "./NoteSuggesterModal";
 import {
   AddUnderPageHeadingSettings,
   DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS,
@@ -21,17 +22,29 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
   private registerEvents() {
     this.registerEvent(
       this.app.metadataCache.on("resolved", () => {
-        this.registerDynamicCommands();
+        if (this.settings.enableDynamicCommands) {
+          this.registerDynamicCommands();
+        }
       }),
     );
   }
 
   private registerCommands() {
-    this.registerDynamicCommands();
+    if (this.settings.enableDynamicCommands) {
+      this.registerDynamicCommands();
+    }
     this.registerStaticCommands();
   }
 
   private registerStaticCommands() {
+    this.addCommand({
+      id: "add-item-to-note-suggester",
+      name: "Add item to note...",
+      callback: () => {
+        new NoteSuggesterModal(this.app, this).open();
+      },
+    });
+
     this.addCommand({
       id: "add-item-to-all-matching-notes",
       name: "Add item to all notes matching a rule",
@@ -57,43 +70,58 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
   }
 
   async saveSettings() {
-  	await this.saveData(this.settings);
+    await this.saveData(this.settings);
   }
 
   registerDynamicCommands() {
-  	const files = this.app.vault.getMarkdownFiles();
+    // 1. Surgical Sweeper: Only remove programmatic ones if enabled
+    const commandRegistry = (this.app as any).commands;
+    const pluginId = this.manifest.id;
+    const programmaticPrefix = `${pluginId}:${pluginId}-`;
 
-  	this.settings.rules.forEach((rule) => {
-  		if (!rule.tag) return;
+    Object.keys(commandRegistry.commands).forEach((id) => {
+      if (id.startsWith(programmaticPrefix)) {
+        commandRegistry.removeCommand(id);
+      }
+    });
 
-  		files
-  			.filter((file) => this.isFileMatch(file, rule))
-  			.forEach((file) => this.registerCommandForFile(file, rule));
-  	});
+    if (!this.settings.enableDynamicCommands) return;
+
+    // 2. Find and register matches
+    const files = this.app.vault.getMarkdownFiles();
+
+    this.settings.rules.forEach((rule) => {
+      if (!rule.tag) return;
+
+      files
+        .filter((file) => this.isFileMatch(file, rule))
+        .forEach((file) => this.registerCommandForFile(file, rule));
+    });
   }
 
   public isFileMatch(file: TFile, rule: Rule): boolean {
-  	const metadata = this.app.metadataCache.getFileCache(file);
-  	const fileTags = parseFrontMatterTags(metadata?.frontmatter) || [];
+    const metadata = this.app.metadataCache.getFileCache(file);
+    const fileTags = parseFrontMatterTags(metadata?.frontmatter) || [];
 
-  	// Normalize tags (remove '#' and convert to lowercase)
-  	const normalizedTags = fileTags.map((tag) =>
-  		tag.replace(/^#/, "").toLowerCase(),
-  	);
-  	const targetTag = rule.tag.replace(/^#/, "").toLowerCase();
-  	const requiredTag = this.settings.globalRequiredTag
-  		?.replace(/^#/, "")
-  		.toLowerCase();
+    // Normalize tags (remove '#' and convert to lowercase)
+    const normalizedTags = fileTags.map((tag) =>
+      tag.replace(/^#/, "").toLowerCase(),
+    );
+    const targetTag = rule.tag.replace(/^#/, "").toLowerCase();
+    const requiredTag = this.settings.globalRequiredTag
+      ?.replace(/^#/, "")
+      .toLowerCase();
 
-  	const matchesRuleTag = normalizedTags.includes(targetTag);
-  	const matchesGlobalTag =
-  		!requiredTag || normalizedTags.includes(requiredTag);
+    const matchesRuleTag = normalizedTags.includes(targetTag);
+    const matchesGlobalTag =
+      !requiredTag || normalizedTags.includes(requiredTag);
 
-  	return matchesRuleTag && matchesGlobalTag;
+    return matchesRuleTag && matchesGlobalTag;
   }
+
   private registerCommandForFile(file: TFile, rule: Rule) {
     const fileName = file.basename;
-    const commandId = `add-under-page-heading-${file.path.replace(/[^a-zA-Z0-9_-]/g, "_")}-${rule.tag}`;
+    const commandId = `${this.manifest.id}-${file.path.replace(/[^a-zA-Z0-9_-]/g, "_")}-${rule.tag}`;
 
     this.addCommand({
       id: commandId,
