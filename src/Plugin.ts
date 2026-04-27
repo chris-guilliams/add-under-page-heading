@@ -15,31 +15,13 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
   async onload() {
     await this.loadSettings();
     this.registerCommands();
-    this.registerEvents();
     this.addSettingTab(new SettingTab(this.app, this));
   }
 
-  private registerEvents() {
-    this.registerEvent(
-      this.app.metadataCache.on("resolved", () => {
-        if (this.settings.enableDynamicCommands) {
-          this.registerDynamicCommands();
-        }
-      }),
-    );
-  }
-
   private registerCommands() {
-    if (this.settings.enableDynamicCommands) {
-      this.registerDynamicCommands();
-    }
-    this.registerStaticCommands();
-  }
-
-  private registerStaticCommands() {
     this.addCommand({
       id: "add-item-to-note-suggester",
-      name: "Add item to note...",
+      name: "Add item under page heading...",
       callback: () => {
         new NoteSuggesterModal(this.app, this).open();
       },
@@ -50,14 +32,6 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
       name: "Add item to all notes matching a rule",
       callback: () => {
         new BulkAddItemModal(this.app, this).open();
-      },
-    });
-
-    this.addCommand({
-      id: "reindex-rules-and-notes",
-      name: "Reindex rules and notes",
-      callback: () => {
-        this.registerDynamicCommands();
       },
     });
   }
@@ -71,32 +45,6 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
-  }
-
-  registerDynamicCommands() {
-    // 1. Surgical Sweeper: Only remove programmatic ones if enabled
-    const commandRegistry = (this.app as any).commands;
-    const pluginId = this.manifest.id;
-    const programmaticPrefix = `${pluginId}:${pluginId}-`;
-
-    Object.keys(commandRegistry.commands).forEach((id) => {
-      if (id.startsWith(programmaticPrefix)) {
-        commandRegistry.removeCommand(id);
-      }
-    });
-
-    if (!this.settings.enableDynamicCommands) return;
-
-    // 2. Find and register matches
-    const files = this.app.vault.getMarkdownFiles();
-
-    this.settings.rules.forEach((rule) => {
-      if (!rule.tag) return;
-
-      files
-        .filter((file) => this.isFileMatch(file, rule))
-        .forEach((file) => this.registerCommandForFile(file, rule));
-    });
   }
 
   public isFileMatch(file: TFile, rule: Rule): boolean {
@@ -117,18 +65,5 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
       !requiredTag || normalizedTags.includes(requiredTag);
 
     return matchesRuleTag && matchesGlobalTag;
-  }
-
-  private registerCommandForFile(file: TFile, rule: Rule) {
-    const fileName = file.basename;
-    const commandId = `${this.manifest.id}-${file.path.replace(/[^a-zA-Z0-9_-]/g, "_")}-${rule.tag}`;
-
-    this.addCommand({
-      id: commandId,
-      name: `${fileName} (${rule.heading})`,
-      callback: () => {
-        new EditorModal(this.app, file, rule).open();
-      },
-    });
   }
 }

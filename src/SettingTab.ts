@@ -26,23 +26,9 @@ export class SettingTab extends PluginSettingTab {
 					})
 			);
 
-		new Setting(containerEl)
-			.setName("Dynamic command palette entries")
-			.setDesc("If enabled, individual commands will be added to the palette for every matching note. Note: This uses internal Obsidian APIs and may require a reindex to update correctly.")
-			.addToggle(toggle =>
-				toggle
-					.setValue(this.plugin.settings.enableDynamicCommands)
-					.onChange(async (value) => {
-						this.plugin.settings.enableDynamicCommands = value;
-						await this.plugin.saveSettings();
-						this.plugin.registerDynamicCommands();
-					})
-			);
-
 		new Setting(containerEl).setName("Rules configuration")
 			.setHeading()
-			// eslint-disable-next-line obsidianmd/ui/sentence-case
-			.setDesc("Specify a tag (e.g. 'daily-note') that files must contain and the heading (e.g. '## Notes') items should be inserted underneath. After updating rules you can manually index to update the command palette options.");
+			.setDesc("Specify tags and headings for your rules. Matching notes will appear in the 'Add item to note...' suggester.");
 
 
 		this.plugin.settings.rules.forEach((rule, index) => {
@@ -90,17 +76,6 @@ export class SettingTab extends PluginSettingTab {
 						this.plugin.settings.rules.push({ tag: "", heading: "" });
 						await this.plugin.saveSettings();
 						this.display(); // Re-render UI
-					})
-			);
-
-		new Setting(containerEl)
-			.addButton(btn =>
-				btn
-					.setButtonText("Reindex rules and notes")
-					.setTooltip("Refresh all command palette entries based on current rules and note metadata.")
-					.onClick(() => {
-						this.plugin.registerDynamicCommands();
-						new Notice("Command palette updated with latest rules and notes.");
 					})
 			);
 

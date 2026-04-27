@@ -7,7 +7,6 @@ export interface Rule {
 export interface AddUnderPageHeadingSettings {
 	rules: Rule[];
 	globalRequiredTag: string;
-	enableDynamicCommands: boolean;
 }
 export const DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS: AddUnderPageHeadingSettings = {
 	rules: [
@@ -15,5 +14,4 @@ export const DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS: AddUnderPageHeadingSetting
 		{ tag: "1-1", heading: "## One-on-One Topics" },
 	],
 	globalRequiredTag: "",
-	enableDynamicCommands: false,
 };
