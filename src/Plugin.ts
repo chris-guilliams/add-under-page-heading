@@ -11,8 +11,26 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
+		this.registerCommands();
+		this.registerEvents();
 
-		// Register commands immediately
+		this.addRibbonIcon('between-horizontal-start', 'Add under page heading', () => {
+			this.app.setting.open();
+			this.app.setting.openTabById(this.manifest.id);
+		});
+
+		this.addSettingTab(new SettingTab(this.app, this));
+	}
+
+	private registerEvents() {
+		this.registerEvent(
+			this.app.metadataCache.on('resolved', () => {
+				this.registerCommandsBasedOnTags();
+			})
+		);
+	}
+
+	private registerCommands() {
 		this.registerCommandsBasedOnTags();
 
 		this.addCommand({
@@ -27,23 +45,9 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 			id: 'reindex-rules-and-notes',
 			name: 'Reindex rules and notes',
 			callback: () => {
-				this.registerCommandsBasedOnTags()
+				this.registerCommandsBasedOnTags();
 			},
 		});
-
-		// Also register when metadata is updated
-		this.registerEvent(
-			this.app.metadataCache.on('resolved', () => {
-				this.registerCommandsBasedOnTags();
-			})
-		);
-
-		this.addRibbonIcon('between-horizontal-start', 'Add under page heading', () => {
-			this.app.setting.open();
-			this.app.setting.openTabById(this.manifest.id);
-		});
-
-		this.addSettingTab(new SettingTab(this.app, this));
 	}
 
 	async loadSettings() {
