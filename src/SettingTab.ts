@@ -86,7 +86,7 @@ export class SettingTab extends PluginSettingTab {
 					.setButtonText("Reindex rules and notes")
 					.setTooltip("Refresh all command palette entries based on current rules and note metadata.")
 					.onClick(() => {
-						this.plugin.registerCommandsBasedOnTags();
+						this.plugin.registerDynamicCommands();
 						new Notice("Command palette updated with latest rules and notes.");
 					})
 			);

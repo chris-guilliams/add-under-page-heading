@@ -19,14 +19,17 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 	private registerEvents() {
 		this.registerEvent(
 			this.app.metadataCache.on('resolved', () => {
-				this.registerCommandsBasedOnTags();
+				this.registerDynamicCommands();
 			})
 		);
 	}
 
 	private registerCommands() {
-		this.registerCommandsBasedOnTags();
+		this.registerDynamicCommands();
+		this.registerStaticCommands();
+	}
 
+	private registerStaticCommands() {
 		this.addCommand({
 			id: 'add-item-to-all-matching-notes',
 			name: 'Add item to all notes matching a rule',
@@ -39,7 +42,7 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 			id: 'reindex-rules-and-notes',
 			name: 'Reindex rules and notes',
 			callback: () => {
-				this.registerCommandsBasedOnTags();
+				this.registerDynamicCommands();
 			},
 		});
 	}
@@ -55,7 +58,7 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	registerCommandsBasedOnTags() {
+	registerDynamicCommands() {
 		const files = this.app.vault.getMarkdownFiles();
 
 		this.settings.rules.forEach((rule) => {
