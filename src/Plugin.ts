@@ -1,6 +1,6 @@
-import { parseFrontMatterTags, Plugin } from 'obsidian';
+import { parseFrontMatterTags, Plugin, TFile } from 'obsidian';
 import { BulkAddItemModal } from 'src/BulkAddItemModal';
-import { AddUnderPageHeadingSettings, DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS } from 'src/MyPluginSettings';
+import { AddUnderPageHeadingSettings, DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS, Rule } from 'src/MyPluginSettings';
 import { SettingTab } from 'src/SettingTab';
 import { EditorModal } from './EditorModal';
 
@@ -80,17 +80,21 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 			});
 
 			taggedFiles.forEach((file) => {
-				const fileName = file.basename;
-				const commandId = `add-under-page-heading-${file.path.replace(/[^a-zA-Z0-9_-]/g, "_")}-${rule.tag}`;
-	
-				this.addCommand({
-					id: commandId,
-					name: `${fileName} (${rule.heading})`,
-					callback: () => {
-						new EditorModal(this.app, file, rule).open();
-					},
-				});
+				this.registerCommandForFile(file, rule);
 			});
+		});
+	}
+
+	private registerCommandForFile(file: TFile, rule: Rule) {
+		const fileName = file.basename;
+		const commandId = `add-under-page-heading-${file.path.replace(/[^a-zA-Z0-9_-]/g, "_")}-${rule.tag}`;
+
+		this.addCommand({
+			id: commandId,
+			name: `${fileName} (${rule.heading})`,
+			callback: () => {
+				new EditorModal(this.app, file, rule).open();
+			},
 		});
 	}
 	
