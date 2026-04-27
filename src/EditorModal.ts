@@ -1,72 +1,16 @@
-import { App, Modal, TFile, Notice } from "obsidian";
+import { App, TFile } from "obsidian";
 import { Rule } from "./MyPluginSettings";
-import { EmbeddableMarkdownEditor } from "./EmbeddableEditor";
+import { BaseItemModal } from "./BaseItemModal";
 
-export class EditorModal extends Modal {
-	file: TFile;
-	rule: Rule;
-	editorEl: HTMLDivElement;
-	editor: EmbeddableMarkdownEditor;
-
-	constructor(app: App, file: TFile, rule: Rule) {
-		super(app);
-		this.file = file;
-		this.rule = rule;
+/**
+ * EditorModal: Adds content to a specific heading in a single note.
+ */
+export class EditorModal extends BaseItemModal {
+	constructor(app: App, private file: TFile, private rule: Rule) {
+		super(app, `Add item to ${file.basename}`);
 	}
 
-	onOpen() {
-		void (async () => {
-			const { contentEl } = this;
-			this.modalEl.addClass('add-under-page-heading-modal');
-
-			contentEl.createEl("h2", { text: `Add item to ${this.file.basename}` });
-
-			const editorContainer = contentEl.createDiv({ cls: 'add-under-page-heading-editor-container' });
-
-			this.editor = await EmbeddableMarkdownEditor.create(this.app, editorContainer, {
-				value: "",
-				onEnter: (editor, mod) => {
-					if (mod) {
-						this.submit(editor.value).catch(err => {
-							new Notice(`Error adding item: ${err}`);
-						});
-						return true;
-					}
-					return false;
-				},
-				onEscape: () => {
-					this.close();
-				},
-				onSubmit: (editor) => {
-					this.submit(editor.value).catch(err => {
-						new Notice(`Error adding item: ${err}`);
-					});
-				}
-			});
-
-			const submitBtn = contentEl.createEl("button", { text: "Add" });
-
-			submitBtn.onclick = async () => {
-				const noteContent = this.editor.value.trim();
-				if (!noteContent) return;
-
-				const original = await this.app.vault.read(this.file);
-				const headingPattern = new RegExp(`(${this.rule.heading})`, "i");
-
-				const updatedContent = headingPattern.test(original)
-					? original.replace(headingPattern, `$1\n${noteContent}`)
-					: `${original}\n\n${this.rule.heading}\n${noteContent}`;
-
-				await this.app.vault.modify(this.file, updatedContent);
-				new Notice("Item added!");
-				this.close();
-			};
-		})();
-	}
-
-    async submit(content: string) {
-		if (!content.trim()) return;
-
+	async onSubmit(content: string): Promise<void> {
 		const fileContent = await this.app.vault.read(this.file);
 		const headingPattern = new RegExp(`(${this.rule.heading})`, "i");
 
@@ -75,11 +19,5 @@ export class EditorModal extends Modal {
 			: `${fileContent}\n\n${this.rule.heading}\n${content}`;
 
 		await this.app.vault.modify(this.file, updatedContent);
-		new Notice("Item added!");
-		this.close();
-	}
-
-	onClose() {
-		this.contentEl.empty();
 	}
 }

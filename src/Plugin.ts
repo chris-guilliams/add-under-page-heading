@@ -36,7 +36,7 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
       id: "add-item-to-all-matching-notes",
       name: "Add item to all notes matching a rule",
       callback: () => {
-        new BulkAddItemModal(this.app, this.settings).open();
+        new BulkAddItemModal(this.app, this).open();
       },
     });
 
@@ -57,41 +57,40 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
   }
 
   async saveSettings() {
-    await this.saveData(this.settings);
+  	await this.saveData(this.settings);
   }
 
   registerDynamicCommands() {
-    const files = this.app.vault.getMarkdownFiles();
+  	const files = this.app.vault.getMarkdownFiles();
 
-    this.settings.rules.forEach((rule) => {
-      if (!rule.tag) return;
+  	this.settings.rules.forEach((rule) => {
+  		if (!rule.tag) return;
 
-      files
-        .filter((file) => this.isFileMatch(file, rule))
-        .forEach((file) => this.registerCommandForFile(file, rule));
-    });
+  		files
+  			.filter((file) => this.isFileMatch(file, rule))
+  			.forEach((file) => this.registerCommandForFile(file, rule));
+  	});
   }
 
-  private isFileMatch(file: TFile, rule: Rule) {
-    const metadata = this.app.metadataCache.getFileCache(file);
-    const fileTags = parseFrontMatterTags(metadata?.frontmatter) || [];
+  public isFileMatch(file: TFile, rule: Rule): boolean {
+  	const metadata = this.app.metadataCache.getFileCache(file);
+  	const fileTags = parseFrontMatterTags(metadata?.frontmatter) || [];
 
-    // Normalize tags (remove '#' and convert to lowercase)
-    const normalizedTags = fileTags.map((tag) =>
-      tag.replace(/^#/, "").toLowerCase(),
-    );
-    const targetTag = rule.tag.replace(/^#/, "").toLowerCase();
-    const requiredTag = this.settings.globalRequiredTag
-      ?.replace(/^#/, "")
-      .toLowerCase();
+  	// Normalize tags (remove '#' and convert to lowercase)
+  	const normalizedTags = fileTags.map((tag) =>
+  		tag.replace(/^#/, "").toLowerCase(),
+  	);
+  	const targetTag = rule.tag.replace(/^#/, "").toLowerCase();
+  	const requiredTag = this.settings.globalRequiredTag
+  		?.replace(/^#/, "")
+  		.toLowerCase();
 
-    const matchesRuleTag = normalizedTags.includes(targetTag);
-    const matchesGlobalTag =
-      !requiredTag || normalizedTags.includes(requiredTag);
+  	const matchesRuleTag = normalizedTags.includes(targetTag);
+  	const matchesGlobalTag =
+  		!requiredTag || normalizedTags.includes(requiredTag);
 
-    return matchesRuleTag && matchesGlobalTag;
+  	return matchesRuleTag && matchesGlobalTag;
   }
-
   private registerCommandForFile(file: TFile, rule: Rule) {
     const fileName = file.basename;
     const commandId = `add-under-page-heading-${file.path.replace(/[^a-zA-Z0-9_-]/g, "_")}-${rule.tag}`;
