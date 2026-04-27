@@ -1,101 +1,107 @@
-import { parseFrontMatterTags, Plugin, TFile } from 'obsidian';
-import { BulkAddItemModal } from 'src/BulkAddItemModal';
-import { AddUnderPageHeadingSettings, DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS, Rule } from 'src/MyPluginSettings';
-import { SettingTab } from 'src/SettingTab';
-import { EditorModal } from './EditorModal';
-
+import { parseFrontMatterTags, Plugin, TFile } from "obsidian";
+import { BulkAddItemModal } from "src/BulkAddItemModal";
+import {
+  AddUnderPageHeadingSettings,
+  DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS,
+  Rule,
+} from "src/MyPluginSettings";
+import { SettingTab } from "src/SettingTab";
+import { EditorModal } from "./EditorModal";
 
 export class AddItemsToNotesFromCommandPalette extends Plugin {
-	settings: AddUnderPageHeadingSettings;
-	private registeredCommandIds = new Set<string>();
+  settings: AddUnderPageHeadingSettings;
 
-	async onload() {
-		await this.loadSettings();
-		this.registerCommands();
-		this.registerEvents();
-		this.addSettingTab(new SettingTab(this.app, this));
-	}
+  async onload() {
+    await this.loadSettings();
+    this.registerCommands();
+    this.registerEvents();
+    this.addSettingTab(new SettingTab(this.app, this));
+  }
 
-	private registerEvents() {
-		this.registerEvent(
-			this.app.metadataCache.on('resolved', () => {
-				this.registerDynamicCommands();
-			})
-		);
-	}
+  private registerEvents() {
+    this.registerEvent(
+      this.app.metadataCache.on("resolved", () => {
+        this.registerDynamicCommands();
+      }),
+    );
+  }
 
-	private registerCommands() {
-		this.registerDynamicCommands();
-		this.registerStaticCommands();
-	}
+  private registerCommands() {
+    this.registerDynamicCommands();
+    this.registerStaticCommands();
+  }
 
-	private registerStaticCommands() {
-		this.addCommand({
-			id: 'add-item-to-all-matching-notes',
-			name: 'Add item to all notes matching a rule',
-			callback: () => {
-				new BulkAddItemModal(this.app, this.settings).open();
-			},
-		});
+  private registerStaticCommands() {
+    this.addCommand({
+      id: "add-item-to-all-matching-notes",
+      name: "Add item to all notes matching a rule",
+      callback: () => {
+        new BulkAddItemModal(this.app, this.settings).open();
+      },
+    });
 
-		this.addCommand({
-			id: 'reindex-rules-and-notes',
-			name: 'Reindex rules and notes',
-			callback: () => {
-				this.registerDynamicCommands();
-			},
-		});
-	}
+    this.addCommand({
+      id: "reindex-rules-and-notes",
+      name: "Reindex rules and notes",
+      callback: () => {
+        this.registerDynamicCommands();
+      },
+    });
+  }
 
-	async loadSettings() {
-		this.settings = {
-			...DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS,
-			...(await this.loadData() as Partial<AddUnderPageHeadingSettings>),
-		};
-	}
+  async loadSettings() {
+    this.settings = {
+      ...DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS,
+      ...((await this.loadData()) as Partial<AddUnderPageHeadingSettings>),
+    };
+  }
 
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
+  async saveSettings() {
+    await this.saveData(this.settings);
+  }
 
-	registerDynamicCommands() {
-		const files = this.app.vault.getMarkdownFiles();
+  registerDynamicCommands() {
+    const files = this.app.vault.getMarkdownFiles();
 
-		this.settings.rules.forEach((rule) => {
-			if (!rule.tag) return;
+    this.settings.rules.forEach((rule) => {
+      if (!rule.tag) return;
 
-			const taggedFiles = files.filter((file) => {
-				const metadata = this.app.metadataCache.getFileCache(file);
-				const fileTags = parseFrontMatterTags(metadata?.frontmatter) || [];
+      files
+        .filter((file) => this.isFileMatch(file, rule))
+        .forEach((file) => this.registerCommandForFile(file, rule));
+    });
+  }
 
-				// Normalize tags (remove '#' and convert to lowercase)
-				const normalizedTags = fileTags.map(tag => tag.replace(/^#/, '').toLowerCase());
-				const targetTag = rule.tag.replace(/^#/, '').toLowerCase();
-				const requiredTag = this.settings.globalRequiredTag?.replace(/^#/, '').toLowerCase();
+  private isFileMatch(file: TFile, rule: Rule) {
+    const metadata = this.app.metadataCache.getFileCache(file);
+    const fileTags = parseFrontMatterTags(metadata?.frontmatter) || [];
 
-				const matchesRuleTag = normalizedTags.includes(targetTag);
-				const matchesGlobalTag = !requiredTag || normalizedTags.includes(requiredTag);
+    // Normalize tags (remove '#' and convert to lowercase)
+    const normalizedTags = fileTags.map((tag) =>
+      tag.replace(/^#/, "").toLowerCase(),
+    );
+    const targetTag = rule.tag.replace(/^#/, "").toLowerCase();
+    const requiredTag = this.settings.globalRequiredTag
+      ?.replace(/^#/, "")
+      .toLowerCase();
 
-				return matchesRuleTag && matchesGlobalTag;
-			});
+    const matchesRuleTag = normalizedTags.includes(targetTag);
+    const matchesGlobalTag =
+      !requiredTag || normalizedTags.includes(requiredTag);
 
-			taggedFiles.forEach((file) => {
-				this.registerCommandForFile(file, rule);
-			});
-		});
-	}
+    return matchesRuleTag && matchesGlobalTag;
+  }
 
-	private registerCommandForFile(file: TFile, rule: Rule) {
-		const fileName = file.basename;
-		const commandId = `add-under-page-heading-${file.path.replace(/[^a-zA-Z0-9_-]/g, "_")}-${rule.tag}`;
+  private registerCommandForFile(file: TFile, rule: Rule) {
+    const fileName = file.basename;
+    const commandId = `add-under-page-heading-${file.path.replace(/[^a-zA-Z0-9_-]/g, "_")}-${rule.tag}`;
 
-		this.addCommand({
-			id: commandId,
-			name: `${fileName} (${rule.heading})`,
-			callback: () => {
-				new EditorModal(this.app, file, rule).open();
-			},
-		});
-	}
-	
+    this.addCommand({
+      id: commandId,
+      name: `${fileName} (${rule.heading})`,
+      callback: () => {
+        new EditorModal(this.app, file, rule).open();
+      },
+    });
+  }
 }
