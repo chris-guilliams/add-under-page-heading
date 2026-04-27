@@ -1,5 +1,5 @@
 import { AddItemsToNotesFromCommandPalette } from 'src/Plugin';
-import { PluginSettingTab, App, Setting, Notice } from 'obsidian';
+import { PluginSettingTab, App, Setting } from 'obsidian';
 
 export class SettingTab extends PluginSettingTab {
 	plugin: AddItemsToNotesFromCommandPalette;
@@ -28,7 +28,7 @@ export class SettingTab extends PluginSettingTab {
 
 		new Setting(containerEl).setName("Rules configuration")
 			.setHeading()
-			.setDesc("Specify tags and headings for your rules. Matching notes will appear in the 'Add item to note...' suggester.");
+			.setDesc("Specify tags and headings for your rules. Matching notes will appear in the suggester.");
 
 
 		this.plugin.settings.rules.forEach((rule, index) => {
@@ -61,7 +61,7 @@ export class SettingTab extends PluginSettingTab {
 						.onClick(async () => {
 							this.plugin.settings.rules.splice(index, 1);
 							await this.plugin.saveSettings();
-							this.display(); // Re-render UI
+							this.display();
 						})
 				);
 		});
@@ -75,7 +75,7 @@ export class SettingTab extends PluginSettingTab {
 					.onClick(async () => {
 						this.plugin.settings.rules.push({ tag: "", heading: "" });
 						await this.plugin.saveSettings();
-						this.display(); // Re-render UI
+						this.display();
 					})
 			);
 

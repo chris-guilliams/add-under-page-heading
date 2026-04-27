@@ -7,7 +7,6 @@ import {
   Rule,
 } from "src/MyPluginSettings";
 import { SettingTab } from "src/SettingTab";
-import { EditorModal } from "./EditorModal";
 
 export class AddItemsToNotesFromCommandPalette extends Plugin {
   settings: AddUnderPageHeadingSettings;

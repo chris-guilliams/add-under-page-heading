@@ -2,10 +2,6 @@ import typescript from '@rollup/plugin-typescript';
 import {nodeResolve} from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import copy from 'rollup-plugin-copy';
-import { config } from 'dotenv';
-
-// Load environment variables from .env file
-config();
 
 const isProd = (process.env.BUILD === 'production');
 const vaultPath = process.env.VAULT_PATH;

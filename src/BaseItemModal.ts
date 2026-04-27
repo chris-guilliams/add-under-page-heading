@@ -1,4 +1,4 @@
-import { App, Modal, Notice, TFile } from "obsidian";
+import { App, Modal, Notice } from "obsidian";
 import { EmbeddableMarkdownEditor } from "./EmbeddableEditor";
 
 /**

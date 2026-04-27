@@ -1,4 +1,3 @@
-import { AddUnderPageHeadingSettings, Rule } from 'src/MyPluginSettings';
 import { App } from "obsidian";
 import { BaseItemModal } from './BaseItemModal';
 import { AddItemsToNotesFromCommandPalette } from './Plugin';
