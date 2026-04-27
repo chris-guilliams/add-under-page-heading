@@ -13,12 +13,6 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
 		await this.loadSettings();
 		this.registerCommands();
 		this.registerEvents();
-
-		this.addRibbonIcon('between-horizontal-start', 'Add under page heading', () => {
-			this.app.setting.open();
-			this.app.setting.openTabById(this.manifest.id);
-		});
-
 		this.addSettingTab(new SettingTab(this.app, this));
 	}
 
