@@ -81,8 +81,6 @@ It is planned for the setting `Global required tag` to be removed once rules are
 
 ---
 
----
-
 ## Roadmap 
 
 - Support for rules with multiple tags to match against, i.e. #projects and #active
