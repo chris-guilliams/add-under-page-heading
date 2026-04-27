@@ -16,4 +16,7 @@ data.json
 # Mac
 .DS_Store
 
+# Env
+.env
+
 GEMINI.md
