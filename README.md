@@ -84,3 +84,12 @@ Build the plugin using `npm run build`.
 Copy `main.js`, `manifest.json`, and (optionally) `styles.css` to: `.obsidian/plugins/add-under-page-heading/`
 
 ---
+
+## Roadmap 
+
+- Support for rules with multiple tags to match against, i.e. #projects and #active
+- Support default editor contents for rules
+- Support inserting at top of note if no header is provided in rule configuration
+
+---
+
