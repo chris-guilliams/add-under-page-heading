@@ -1,49 +1,49 @@
 # Add Under Page Heading
 
-Enables inserting note contents into other notes, or groups of notes, based on configured rules using an embedded editor.
+Insert note content into other notes or groups of notes based on configured rules through an embedded editor.
 
-Rules require a specified tag and heading. Once configured, files matching a rule's specified tag criteria will appear in the search list when using the command `Add Under Page Heading: Add item under page heading`.
+Rules require a specified tag and heading. Once configured, notes that match a rule's specified tag criteria appear in the search list when you perform the **Add item under page heading...** command.
 
-Uses [Fevol](https://gist.github.com/Fevol)'s [Embeddable CM Markdown Editor solution](https://gist.github.com/Fevol/caa478ce303e69eabede7b12b2323838)
+Uses [Fevol](https://gist.github.com/Fevol)'s [Embeddable CM Markdown Editor solution](https://gist.github.com/Fevol/caa478ce303e69eabede7b12b2323838).
 
 ![Add Item Modal](./assets/command-palette-demo.gif)
 
 ## Commands
 
-### `Add Under Page Heading: Add item under page heading`
+### `Add Under Page Heading: Add item under page heading...`
 
-Search through the files that match the currently configured rules. Selecting a file will open the embedded editor and allow the user to enter the content they wish to have inserted into the note under the specified heading.
+Search through notes that match the currently configured rules. Selecting a note opens the embedded editor to enter content for insertion under the specified heading.
 
-### `Add Under Page Heading: Add item to all notes matching a rule`
+### `Add Under Page Heading: Add item to all notes that match a rule`
 
-Opens an embedded editor that includes dropdown that allows a user to select a specific rule from a list of configured rules. The content entered by the user will be inserted into every note matching the selected rule.
+Opens an embedded editor with a dropdown menu to select a specific rule. Entered content is inserted into every note that matches the selected rule.
 
 ---
 
 ## Features
 
-- Use the command palette to insert content into a specific note (or all notes) matching a configured rule under a specified heading
-- Rules can be configured in the plugin settings to surface notes in the command palette
-- Embedded Obsidian editor allows use of command palette options when entering content to insert
+- **Command palette insertion** — Insert content into a specific note (or all notes that match) under a specified heading directly from the command palette.
+- **Rule-based filtering** — Configure rules in the plugin settings to surface specific notes based on tags.
+- **Embedded Obsidian editor** — Use the rich markdown editor and command palette options while entering content.
 
 ---
 
-## How It Works
+## How it works
 
-1. **Tag your notes** (in frontmatter) with things like `career`, `1-1`, `active`, etc.
-2. **Define rules** in the plugin settings:
-   - A `tag` to match against your notes’ frontmatter.
-   - A `heading` under which new content should be inserted.
-3. **Use the command palette** to choose a matching file or bulk insert into all files matching a specified rule.
-4. A modal appears with a rich markdown editor.
-5. Submit your entry—your content is inserted under the configured heading in the target file.
+1. **Tag your notes** — Add tags (in frontmatter) such as `career`, `1-1`, or `active`.
+2. **Define rules** — In the plugin settings, specify:
+   - A **tag** to match against your notes’ frontmatter.
+   - A **heading** under which new content should be inserted.
+3. **Perform the command** — Use the command palette to choose a note that matches or bulk insert into all notes that match a rule.
+4. **Enter content** — A modal appears with a rich markdown editor.
+5. **Submit entry** — Your content is inserted under the configured heading in the target note.
 
 ---
 
-## Example Use Case
+## Example use case
 
-### Inserting Under a Heading of a Particular Note
-You're a manager with a note like:
+### Insert under a heading of a specific note
+Consider a manager with a note like this:
 
 ```markdown
 ---
@@ -55,19 +55,17 @@ tags: [direct-report, career, active]
 - Deliver feedback regarding recent performance
 ```
 
-If you've configured a rule with:
+If you configure a rule with:
+- **Tag** — `career`
+- **Heading** — `## Career Discussion`
 
-    tag: career
-    heading: ## Career Discussion
-
-You can run the command `Add Under Page Heading: Add item under page heading`, search for the specific note, then enter the content you would like to have inserted directly under the specified heading of that particular note.
+You can perform the **Add item under page heading...** command, search for the specific note, and enter the content you would like to have inserted directly under the specified heading.
 
 ![Add Item Modal](./assets/add-item-modal.png)
 
-### Inserting Under a Heading of All Notes for a Given Rule
+### Insert under a heading of all notes for a given rule
 
-If there are multiple files within the Vault that match a configured rule and you would like to insert into all of them the command `Add Under Page Heading: Add item to all notes matching a rule`.
-
+If multiple notes in your vault match a configured rule, use the **Add item to all notes that match a rule** command to insert content into all of them simultaneously.
 
 ![Add Item Modal](./assets/add-to-all-matching-notes.png)
 
@@ -75,24 +73,20 @@ If there are multiple files within the Vault that match a configured rule and yo
 
 ## Settings
 
-It is planned for the setting `Global required tag` to be removed once rules are updated to support a list of tags.
+> [!info] Future plan
+> The **Global required tag** setting will be removed once rules are updated to support multiple tags per rule.
 
-![Settings](./assets//settings.png)
+![Settings](./assets/settings.png)
 
 ---
 
 ## Roadmap 
 
-- Support for rules with multiple tags to match against, i.e. #projects and #active
+- Support for rules with multiple tags (e.g., `#projects` and `#active`).
     - Remove global tag setting
-- Support default editor contents for rules
-- Support inserting at top of note if no header is provided in rule configuration
-- Automatically remove empty rules when Settings are closed
-- Fix modal submit buttons dissappearing at shorter screen heights
-- Support reordering of rules (allows priority for list in add item to all command)
-- Support generating a command for a specific file and a list of files
-- Support ribbon icon
-- Support matching heading level in rule configuration
-
----
-
+- Support default editor contents for rules.
+- Support inserting at the top of a note if no heading is provided.
+- Automatically remove empty rules when settings are closed.
+- Fix modal submit buttons disappearing at shorter screen heights.
+- Support reordering of rules.
+- Support matches for specified heading level (i.e., `##`, `###`, etc.) in rule configuration.

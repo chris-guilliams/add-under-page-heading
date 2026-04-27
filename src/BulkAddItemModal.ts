@@ -9,7 +9,7 @@ export class BulkAddItemModal extends BaseItemModal {
     private selectEl: HTMLSelectElement;
   
     constructor(app: App, private plugin: AddItemsToNotesFromCommandPalette) {
-      super(app, 'Add item to all matching notes');
+      super(app, 'Add item to all notes that match a rule');
     }
 
     renderHeader(contentEl: HTMLElement): void {
