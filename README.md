@@ -73,7 +73,7 @@ If multiple notes in your vault match a configured rule, use the **Add item to a
 
 ## Settings
 
-> [!info] Future plan
+> [!info]+ Future plan
 > The **Global required tag** setting will be removed once rules are updated to support multiple tags per rule.
 
 ![Settings](./assets/settings.png)
