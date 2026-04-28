@@ -90,3 +90,4 @@ If multiple notes in your vault match a configured rule, use the **Add item to a
 - Fix modal submit buttons disappearing at shorter screen heights.
 - Support reordering of rules.
 - Support matches for specified heading level (i.e., `##`, `###`, etc.) in rule configuration.
+- Support fuzzy matching headings similar to file names for rules with no heading configured
