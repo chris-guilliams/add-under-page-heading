@@ -1,7 +1,7 @@
 {
 	"id": "add-under-page-heading",
 	"name": "Add Under Page Heading",
-	"version": "0.15.4",
+	"version": "0.15.5",
 	"minAppVersion": "0.9.12",
 	"description": "Add items to specific headings in your notes directly from the command palette based on configurable rules.",
 	"author": "Chris Guilliams",
