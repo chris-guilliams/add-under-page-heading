@@ -1,5 +1,6 @@
 import { AddItemsToNotesFromCommandPalette } from 'src/Plugin';
 import { PluginSettingTab, App, Setting } from 'obsidian';
+import { TagSuggester } from './TagSuggester';
 
 export class SettingTab extends PluginSettingTab {
 	plugin: AddItemsToNotesFromCommandPalette;
@@ -23,15 +24,16 @@ export class SettingTab extends PluginSettingTab {
 				.setName(`Rule ${index + 1}`);
 
 			ruleSetting
-				.addText(text =>
+				.addText(text => {
 					text
 						.setPlaceholder("Tags")
 						.setValue(Array.isArray(rule.tags) ? rule.tags.join(", ") : "")
 						.onChange(async (value) => {
 							rule.tags = value.split(",").map(t => t.trim()).filter(t => t !== "");
 							await this.plugin.saveSettings();
-						})
-				)
+						});
+					new TagSuggester(this.app, text.inputEl);
+				})
 				.addText(text =>
 					text
 						.setPlaceholder("Heading")
