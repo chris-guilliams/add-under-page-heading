@@ -19,7 +19,7 @@ export class NoteSuggesterModal extends FuzzySuggestModal<NoteMatch> {
 		const matches: NoteMatch[] = [];
 
 		this.plugin.settings.rules.forEach((rule) => {
-			if (!rule.tag) return;
+			if (!rule.tags || rule.tags.length === 0) return;
 
 			files
 				.filter((file) => this.plugin.isFileMatch(file, rule))

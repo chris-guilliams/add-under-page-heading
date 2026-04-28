@@ -50,19 +50,15 @@ export class AddItemsToNotesFromCommandPalette extends Plugin {
     const metadata = this.app.metadataCache.getFileCache(file);
     const fileTags = parseFrontMatterTags(metadata?.frontmatter) || [];
 
-    // Normalize tags (remove '#' and convert to lowercase)
-    const normalizedTags = fileTags.map((tag) =>
+    // Normalize note tags
+    const normalizedNoteTags = fileTags.map((tag) =>
       tag.replace(/^#/, "").toLowerCase(),
     );
-    const targetTag = rule.tag.replace(/^#/, "").toLowerCase();
-    const requiredTag = this.settings.globalRequiredTag
-      ?.replace(/^#/, "")
-      .toLowerCase();
 
-    const matchesRuleTag = normalizedTags.includes(targetTag);
-    const matchesGlobalTag =
-      !requiredTag || normalizedTags.includes(requiredTag);
-
-    return matchesRuleTag && matchesGlobalTag;
+    // Rule must match ALL tags in the rule.tags array
+    return rule.tags.every((targetTag) => {
+      const normalizedTarget = targetTag.replace(/^#/, "").toLowerCase();
+      return normalizedNoteTags.includes(normalizedTarget);
+    });
   }
 }

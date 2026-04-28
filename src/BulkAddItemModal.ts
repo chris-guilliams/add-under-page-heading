@@ -18,7 +18,7 @@ export class BulkAddItemModal extends BaseItemModal {
         });
 
         this.plugin.settings.rules.forEach((rule, index) => {
-            const option = this.selectEl.createEl('option', { text: `Rule ${index + 1}: ${rule.tag}` });
+            const option = this.selectEl.createEl('option', { text: `Rule ${index + 1}: ${rule.tags.join(", ")}` });
             option.value = index.toString();
         });
     }
@@ -35,11 +35,13 @@ export class BulkAddItemModal extends BaseItemModal {
     
         for (const file of matchingFiles) {
             const fileContent = await this.app.vault.read(file);
-            const headingPattern = new RegExp(`(${rule.heading})`, "i");
+            const heading = rule.heading.trim();
+            const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const headingPattern = new RegExp(`(^${escapedHeading}\\s*$)`, "im");
     
             const updatedContent = headingPattern.test(fileContent)
                 ? fileContent.replace(headingPattern, `$1\n${content}`)
-                : `${fileContent}\n\n${rule.heading}\n${content}`;
+                : `${fileContent}\n\n${heading}\n${content}`;
     
             await this.app.vault.modify(file, updatedContent);
         }

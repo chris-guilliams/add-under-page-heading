@@ -185,10 +185,10 @@ export class EmbeddableMarkdownEditor extends Component {
 		// Handle active editor tracking
 		this.register(
 			around(this.app.workspace, {
-				setActiveLeaf: (oldMethod: (leaf: WorkspaceLeaf, pushHistory?: boolean, focus?: boolean) => void) =>
-					(leaf: WorkspaceLeaf, pushHistory?: boolean, focus?: boolean) => {
+				setActiveLeaf: (oldMethod: (leaf: WorkspaceLeaf, params?: { focus?: boolean }) => void) =>
+					(leaf: WorkspaceLeaf, params?: { focus?: boolean }) => {
 						if (!this.instance.activeCM.hasFocus)
-							oldMethod.call(this.app.workspace, leaf, pushHistory, focus);
+							oldMethod.call(this.app.workspace, leaf, params);
 					},
 			}),
 		);

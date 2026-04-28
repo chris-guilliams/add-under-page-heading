@@ -82,8 +82,6 @@ If multiple notes in your vault match a configured rule, use the **Add item to a
 
 ## Roadmap 
 
-- Support for rules with multiple tags (e.g., `#projects` and `#active`).
-    - Remove global tag setting
 - Support default editor contents for rules.
 - Support inserting at the top of a note if no heading is provided.
 - Automatically remove empty rules when settings are closed.
