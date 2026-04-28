@@ -56,6 +56,8 @@ export abstract class BaseItemModal extends Modal {
                 }
             });
 
+            this.editor.focus();
+
             const submitBtn = contentEl.createEl("button", { text: "Add", cls: "mod-cta" });
             submitBtn.onclick = () => void this.handleSubmission(this.editor.value);
         })();

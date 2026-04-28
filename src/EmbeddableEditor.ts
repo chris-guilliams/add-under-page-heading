@@ -260,6 +260,10 @@ export class EmbeddableMarkdownEditor extends Component {
 		return this.instance.editor.cm.state.doc.toString();
 	}
 
+	focus() {
+		this.instance.editor.cm.focus();
+	}
+
 	onunload() {
 		this.instance.onunload();
 		this.app.keymap.popScope(this.scope);
