@@ -169,8 +169,15 @@ export class EmbeddableMarkdownEditor extends Component {
 			getMode: () => 'source',
 		});
 
-		this.scope = new Scope((this.app as unknown).scope);
-		this.scope.register(["Mod"], "Enter", () => true);
+		this.scope = new Scope((this.app as any).scope);
+		this.scope.register(["Mod"], "Enter", () => {
+			this.options.onSubmit(this);
+			return true;
+		});
+		this.scope.register([], "Escape", () => {
+			this.options.onEscape(this);
+			return true;
+		});
 
 		// Mock the view/owner relationship required for internal commands
 		this.instance.owner.editMode = this.instance;
@@ -182,10 +189,10 @@ export class EmbeddableMarkdownEditor extends Component {
 		// Handle active editor tracking
 		this.register(
 			around(this.app.workspace, {
-				setActiveLeaf: (oldMethod: unknown) =>
-					(leaf: WorkspaceLeaf, params: unknown) => {
+				setActiveLeaf: (oldMethod: (leaf: WorkspaceLeaf, pushHistory?: boolean, focus?: boolean) => void) =>
+					(leaf: WorkspaceLeaf, pushHistory?: boolean, focus?: boolean) => {
 						if (!this.instance.activeCM.hasFocus)
-							oldMethod.call(this.app.workspace, leaf, params);
+							oldMethod.call(this.app.workspace, leaf, pushHistory, focus);
 					},
 			}),
 		);
@@ -195,7 +202,7 @@ export class EmbeddableMarkdownEditor extends Component {
 		
 		cm.contentDOM.addEventListener('blur', () => {
 			this.app.keymap.popScope(this.scope);
-			if (this.instance._loaded) this.options.onBlur(this);
+			if (this.instance._loaded && this.options.onBlur) this.options.onBlur(this);
 		});
 
 		cm.contentDOM.addEventListener('focusin', () => {
@@ -212,35 +219,16 @@ export class EmbeddableMarkdownEditor extends Component {
 		}
 
 		// Patch buildLocalExtensions to include our custom behaviors
-		const originalBuild = this.instance.buildLocalExtensions.bind(this.instance);
+		const originalBuild = this.instance.buildLocalExtensions.bind(this.instance) as () => Extension[];
 		this.instance.buildLocalExtensions = () => {
 			const extensions = originalBuild();
 			if (this.options.placeholder) extensions.push(placeholder(this.options.placeholder));
 
 			extensions.push(EditorView.domEventHandlers({
-				paste: (event) => this.options.onPaste(event, this)
-			}));
-
-			extensions.push(Prec.highest(keymap.of([
-				{
-					key: 'Enter',
-					run: () => this.options.onEnter(this, false, false),
-					shift: () => this.options.onEnter(this, false, true)
-				},
-				{
-					key: 'Mod-Enter',
-					run: () => this.options.onEnter(this, true, false),
-					shift: () => this.options.onEnter(this, true, true)
-				},
-				{
-					key: 'Escape',
-					run: () => {
-						this.options.onEscape(this);
-						return true;
-					},
-					preventDefault: true
+				paste: (event) => {
+					if (this.options.onPaste) this.options.onPaste(event, this);
 				}
-			])));
+			}));
 
 			return extensions;
 		};

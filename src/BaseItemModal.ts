@@ -43,16 +43,9 @@ export abstract class BaseItemModal extends Modal {
 
             this.editor = await EmbeddableMarkdownEditor.create(this.app, editorContainer, {
                 value: "",
-                onEnter: (editor, mod) => {
-                    if (mod) {
-                        void this.handleSubmission(editor.value);
-                        return true;
-                    }
-                    return false;
-                },
                 onEscape: () => this.close(),
-                onSubmit: (editor) => {
-                    void this.handleSubmission(editor.value);
+                onSubmit: () => {
+                    void this.handleSubmission(this.editor.value);
                 }
             });
 
