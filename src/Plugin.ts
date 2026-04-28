@@ -5,7 +5,7 @@ import {
   AddUnderPageHeadingSettings,
   DEFAULT_ADD_UNDER_PAGE_HEADING_SETTINGS,
   Rule,
-} from "src/MyPluginSettings";
+} from "src/Settings";
 import { SettingTab } from "src/SettingTab";
 
 export class AddItemsToNotesFromCommandPalette extends Plugin {

@@ -1,6 +1,6 @@
 import { App, FuzzySuggestModal, TFile } from "obsidian";
 import { AddItemsToNotesFromCommandPalette } from "./Plugin";
-import { Rule } from "./MyPluginSettings";
+import { Rule } from "./Settings";
 import { EditorModal } from "./EditorModal";
 
 interface NoteMatch {

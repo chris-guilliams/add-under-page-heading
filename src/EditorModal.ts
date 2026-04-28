@@ -1,5 +1,5 @@
 import { App, TFile } from "obsidian";
-import { Rule } from "./MyPluginSettings";
+import { Rule } from "./Settings";
 import { BaseItemModal } from "./BaseItemModal";
 
 /**
