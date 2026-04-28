@@ -6,6 +6,5 @@
 	"description": "Add items to specific headings in your notes directly from the command palette based on configurable rules.",
 	"author": "Chris Guilliams",
 	"authorUrl": "https://github.com/chris-guilliams/",
-	"isDesktopOnly": false,
-	"main": "main.js"
+	"isDesktopOnly": false
 }
