@@ -70,6 +70,9 @@ export abstract class BaseItemModal extends Modal {
     }
 
     onClose() {
+        if (this.editor) {
+            this.editor.onunload();
+        }
         this.contentEl.empty();
     }
 }

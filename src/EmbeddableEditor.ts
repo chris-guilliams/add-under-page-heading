@@ -65,43 +65,38 @@ let cachedPrototype: Constructor<unknown> | null = null;
 async function getEditorPrototype(app: App): Promise<Constructor<unknown>> {
 	if (cachedPrototype) return cachedPrototype;
 
-	// 1. Try "Smart Discovery": Find an existing Markdown editor in the workspace
+	// 1. Try "Smart Discovery"
 	const activeLeaf = app.workspace.getLeavesOfType("markdown")[0];
-	if (activeLeaf && (activeLeaf.view as unknown).editMode) {
-		const MarkdownEditor = Object.getPrototypeOf(Object.getPrototypeOf((activeLeaf.view as unknown).editMode));
+	if (activeLeaf && (activeLeaf.view as any).editMode) {
+		const MarkdownEditor = Object.getPrototypeOf(Object.getPrototypeOf((activeLeaf.view as any).editMode));
 		if (MarkdownEditor && MarkdownEditor.constructor) {
 			cachedPrototype = MarkdownEditor.constructor as Constructor<unknown>;
 			return cachedPrototype;
 		}
 	}
 
-	// 2. Fallback: Create a temporary editor if no markdown view is open
+	// 2. Fallback
 	const widgetEditorView = app.embedRegistry.embedByExtension.md(
 		{ app, containerEl: document.createElement('div') },
 		null,
 		'',
 	);
 
-	// Some versions of Obsidian require the view to be "loaded" to instantiate editMode
-	if ((widgetEditorView as unknown).load) (widgetEditorView as unknown).load();
-	
+	if (widgetEditorView.load) widgetEditorView.load();
 	widgetEditorView.editable = true;
 	widgetEditorView.showEditor();
 
-	// Wait up to 1000ms for Obsidian to hydrate the editor (increased timeout)
 	let attempts = 0;
 	while (!widgetEditorView.editMode || !widgetEditorView.editMode.editMode) {
-		if (attempts > 100) { // 1000ms total
+		if (attempts > 100) {
 			widgetEditorView.unload();
-			throw new Error("Failed to resolve Obsidian Markdown editor prototype: editMode remained null after 1000ms. Please try opening a Markdown file first.");
+			throw new Error("Failed to resolve Obsidian Markdown editor prototype.");
 		}
 		await new Promise(resolve => setTimeout(resolve, 10));
 		attempts++;
 	}
 
 	const MarkdownEditor = Object.getPrototypeOf(Object.getPrototypeOf(widgetEditorView.editMode.editMode));
-
-	// Unload to remove the temporary editor
 	widgetEditorView.unload();
 
 	cachedPrototype = MarkdownEditor.constructor as Constructor<unknown>;
@@ -141,9 +136,10 @@ const defaultProperties: MarkdownEditorProps = {
  * Uses Delegation instead of Inheritance for stability.
  */
 export class EmbeddableMarkdownEditor extends Component {
-	private instance: unknown; // The internal Obsidian editor instance
+	private instance: any; // The internal Obsidian editor instance
 	private scope: Scope;
 	private options: MarkdownEditorProps;
+	private isScopePushed = false;
 
 	constructor(private app: App, private containerEl: HTMLElement, options: Partial<MarkdownEditorProps>) {
 		super();
@@ -201,12 +197,18 @@ export class EmbeddableMarkdownEditor extends Component {
 		const cm = this.instance.editor.cm;
 		
 		cm.contentDOM.addEventListener('blur', () => {
-			this.app.keymap.popScope(this.scope);
+			if (this.isScopePushed) {
+				this.app.keymap.popScope(this.scope);
+				this.isScopePushed = false;
+			}
 			if (this.instance._loaded && this.options.onBlur) this.options.onBlur(this);
 		});
 
 		cm.contentDOM.addEventListener('focusin', () => {
-			this.app.keymap.pushScope(this.scope);
+			if (!this.isScopePushed) {
+				this.app.keymap.pushScope(this.scope);
+				this.isScopePushed = true;
+			}
 			this.app.workspace.activeEditor = this.instance.owner;
 		});
 
@@ -237,7 +239,7 @@ export class EmbeddableMarkdownEditor extends Component {
 		const originalUpdate = this.instance.onUpdate.bind(this.instance);
 		this.instance.onUpdate = (update: ViewUpdate, changed: boolean) => {
 			originalUpdate(update, changed);
-			if (changed) this.options.onChange(update);
+			if (this.options.onChange) this.options.onChange(update);
 		};
 
 		// Finalize initialization
@@ -254,7 +256,10 @@ export class EmbeddableMarkdownEditor extends Component {
 
 	onunload() {
 		this.instance.onunload();
-		this.app.keymap.popScope(this.scope);
+		if (this.isScopePushed) {
+			this.app.keymap.popScope(this.scope);
+			this.isScopePushed = false;
+		}
 		this.app.workspace.activeEditor = null;
 		this.containerEl.empty();
 	}
