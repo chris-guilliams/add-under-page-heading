@@ -1,4 +1,3 @@
-/* eslint-disable */
 /**
  * All credits go to mgmeyers for figuring out how to grab the proper editor prototype
  * 	 and making it easily deployable
@@ -15,11 +14,11 @@
  */
 
 import {
-	App, Component, Scope, TFile, WorkspaceLeaf, Constructor
+	App, Component, Scope, TFile, WorkspaceLeaf, View
 } from "obsidian";
 
-import {EditorSelection, Extension, Prec} from "@codemirror/state";
-import {EditorView, keymap, placeholder, ViewUpdate} from "@codemirror/view";
+import {EditorSelection, Extension} from "@codemirror/state";
+import {EditorView, placeholder, ViewUpdate} from "@codemirror/view";
 
 import {around} from "monkey-around";
 
@@ -33,7 +32,30 @@ interface WidgetEditorView {
 		editMode: unknown;
 	} | null;
 	unload(): void;
+	load?(): void;
 }
+
+interface InternalMarkdownEditor {
+	owner: InternalMarkdownView;
+	editor: {
+		cm: EditorView;
+	};
+	activeCM: EditorView & { hasFocus: boolean };
+	_loaded: boolean;
+	editorEl: HTMLElement;
+	set(value: string): void;
+	buildLocalExtensions(): Extension[];
+	onUpdate(update: ViewUpdate, changed: boolean): void;
+	onload(): void;
+	onunload(): void;
+}
+
+interface InternalMarkdownView extends View {
+	editMode: InternalMarkdownEditor;
+	editor: InternalMarkdownEditor['editor'];
+}
+
+type EditorConstructor = new (app: App, containerEl: HTMLElement, options: unknown) => InternalMarkdownEditor;
 
 /**
  * Interface augmentation for Obsidian's App to avoid 'any' casts
@@ -46,7 +68,7 @@ declare module "obsidian" {
 		};
 		embedRegistry: {
 			embedByExtension: {
-				md: (options: unknown, file: TFile, content: string) => WidgetEditorView;
+				md: (options: unknown, file: TFile | null, content: string) => WidgetEditorView;
 			};
 		};
 		scope: Scope;
@@ -60,18 +82,21 @@ declare module "obsidian" {
 	}
 }
 
-let cachedPrototype: Constructor<unknown> | null = null;
+let cachedPrototype: EditorConstructor | null = null;
 
-async function getEditorPrototype(app: App): Promise<Constructor<unknown>> {
+async function getEditorPrototype(app: App): Promise<EditorConstructor> {
 	if (cachedPrototype) return cachedPrototype;
 
 	// 1. Try "Smart Discovery"
 	const activeLeaf = app.workspace.getLeavesOfType("markdown")[0];
-	if (activeLeaf && (activeLeaf.view as any).editMode) {
-		const MarkdownEditor = Object.getPrototypeOf(Object.getPrototypeOf((activeLeaf.view as any).editMode));
-		if (MarkdownEditor && MarkdownEditor.constructor) {
-			cachedPrototype = MarkdownEditor.constructor as Constructor<unknown>;
-			return cachedPrototype;
+	if (activeLeaf) {
+		const view = activeLeaf.view as InternalMarkdownView;
+		if (view.editMode) {
+			const MarkdownEditor = Object.getPrototypeOf(Object.getPrototypeOf(view.editMode)) as { constructor: EditorConstructor };
+			if (MarkdownEditor && MarkdownEditor.constructor) {
+				cachedPrototype = MarkdownEditor.constructor;
+				return cachedPrototype;
+			}
 		}
 	}
 
@@ -96,10 +121,10 @@ async function getEditorPrototype(app: App): Promise<Constructor<unknown>> {
 		attempts++;
 	}
 
-	const MarkdownEditor = Object.getPrototypeOf(Object.getPrototypeOf(widgetEditorView.editMode.editMode));
+	const MarkdownEditor = Object.getPrototypeOf(Object.getPrototypeOf(widgetEditorView.editMode.editMode)) as { constructor: EditorConstructor };
 	widgetEditorView.unload();
 
-	cachedPrototype = MarkdownEditor.constructor as Constructor<unknown>;
+	cachedPrototype = MarkdownEditor.constructor;
 	return cachedPrototype;
 }
 
@@ -133,10 +158,9 @@ const defaultProperties: MarkdownEditorProps = {
 
 /**
  * EmbeddableMarkdownEditor: A rich markdown editor for Modals.
- * Uses Delegation instead of Inheritance for stability.
  */
 export class EmbeddableMarkdownEditor extends Component {
-	private instance: any; // The internal Obsidian editor instance
+	private instance: InternalMarkdownEditor; // The internal Obsidian editor instance
 	private scope: Scope;
 	private options: MarkdownEditorProps;
 	private isScopePushed = false;
@@ -165,7 +189,7 @@ export class EmbeddableMarkdownEditor extends Component {
 			getMode: () => 'source',
 		});
 
-		this.scope = new Scope((this.app as any).scope);
+		this.scope = new Scope(this.app.scope);
 		this.scope.register(["Mod"], "Enter", () => {
 			this.options.onSubmit(this);
 			return true;
@@ -220,27 +244,30 @@ export class EmbeddableMarkdownEditor extends Component {
 			});
 		}
 
-		// Patch buildLocalExtensions to include our custom behaviors
-		const originalBuild = this.instance.buildLocalExtensions.bind(this.instance) as () => Extension[];
-		this.instance.buildLocalExtensions = () => {
-			const extensions = originalBuild();
-			if (this.options.placeholder) extensions.push(placeholder(this.options.placeholder));
+		// Patch internal methods
+		this.register(
+			around(this.instance, {
+				buildLocalExtensions: (oldMethod) => () => {
+					const extensions = (oldMethod.call(this.instance) as Extension[]);
+					if (this.options.placeholder) {
+						extensions.push(placeholder(this.options.placeholder));
+					}
 
-			extensions.push(EditorView.domEventHandlers({
-				paste: (event) => {
-					if (this.options.onPaste) this.options.onPaste(event, this);
+					extensions.push(EditorView.domEventHandlers({
+						paste: (event) => {
+							if (this.options.onPaste) this.options.onPaste(event, this);
+							return false;
+						}
+					}));
+
+					return extensions;
+				},
+				onUpdate: (oldMethod) => (update: ViewUpdate, changed: boolean) => {
+					(oldMethod.call(this.instance, update, changed) as void);
+					if (this.options.onChange) this.options.onChange(update);
 				}
-			}));
-
-			return extensions;
-		};
-
-		// Patch onUpdate
-		const originalUpdate = this.instance.onUpdate.bind(this.instance);
-		this.instance.onUpdate = (update: ViewUpdate, changed: boolean) => {
-			originalUpdate(update, changed);
-			if (this.options.onChange) this.options.onChange(update);
-		};
+			})
+		);
 
 		// Finalize initialization
 		this.instance.onload();
